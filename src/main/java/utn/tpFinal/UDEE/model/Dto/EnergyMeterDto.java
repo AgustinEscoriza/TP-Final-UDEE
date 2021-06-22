@@ -20,7 +20,7 @@ public class EnergyMeterDto {
     private String password;
     private String residenceStreet;
     private String residenceNumber;
-    private List<MeasureSenderDto> measureSenderDto;
+    private List<MeasureResponseDto> measureResponseDto;
 
     public static EnergyMeterDto from (EnergyMeter energyMeter){
         EnergyMeterDto energyMeterDto = null;
@@ -32,7 +32,7 @@ public class EnergyMeterDto {
                 .password(energyMeter.getPassword())
                 .build();
 
-        if(energyMeter.getMeasure() != null) energyMeterDto.setMeasureSenderDto(MeasureSenderDto.from(energyMeter.getMeasure()));
+        if(energyMeter.getMeasure() != null) energyMeterDto.setMeasureResponseDto(MeasureResponseDto.from(energyMeter.getMeasure()));
 
         if(energyMeter.getResidence() != null){
             energyMeterDto.setResidenceNumber(energyMeter.getResidence().getNumber());

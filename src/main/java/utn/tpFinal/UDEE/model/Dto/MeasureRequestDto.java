@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class MeasureReceiverDto {
+public class MeasureRequestDto {
     String serialNumber;
     float value;
     String date;

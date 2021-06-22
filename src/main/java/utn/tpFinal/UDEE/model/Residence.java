@@ -25,7 +25,6 @@ public class Residence {
     @NotNull
     private Integer postalNumber;
 
-    @NotNull
     @Transient
     private FeeType feeType;
 

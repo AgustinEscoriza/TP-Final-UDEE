@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import utn.tpFinal.UDEE.model.EnergyMeter;
 import utn.tpFinal.UDEE.model.Measurement;
 
 import java.util.ArrayList;
@@ -15,27 +14,27 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class MeasureSenderDto {
+public class MeasureResponseDto {
 
     private Integer id;
-    private Date dateTime;
+    private String dateTime;
     private Float kwH;
     private Boolean billed;
 
-    public static MeasureSenderDto from (Measurement measurement){
-        return MeasureSenderDto.builder()
+    public static MeasureResponseDto from (Measurement measurement){
+        return MeasureResponseDto.builder()
                 .id(measurement.getId())
                 .billed(measurement.getBilled())
                 .kwH(measurement.getKwH())
-                .dateTime(measurement.getDateTime())
+                .dateTime(measurement.getDate().toString())
                 .build();
     }
-    public static List<MeasureSenderDto> from (List<Measurement> measurements){
-        List<MeasureSenderDto> measureSenderDto = new ArrayList<MeasureSenderDto>();
+    public static List<MeasureResponseDto> from (List<Measurement> measurements){
+        List<MeasureResponseDto> measureResponseDto = new ArrayList<MeasureResponseDto>();
 
         for(Measurement m : measurements)
-            measureSenderDto.add(MeasureSenderDto.from(m));
+            measureResponseDto.add(MeasureResponseDto.from(m));
 
-        return measureSenderDto;
+        return measureResponseDto;
     }
 }

@@ -65,7 +65,6 @@ public class EnergyMeterService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(orderList));
         Page<EnergyMeter>meters = energyMeterRepository.findAll(meterSpecification,pageable);
         Page<EnergyMeterDto> dtoMeters= Page.empty();
-        List<EnergyMeterDto> listDto = null;
         if(!meters.isEmpty()){
             dtoMeters = meters.map(m->EnergyMeterDto.from(m));
         }

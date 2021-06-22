@@ -1,6 +1,5 @@
 package utn.tpFinal.UDEE.model.Dto;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ResidenceAddDto {
+public class ResidencePutDto {
     private Integer fee_value;
     private String  number;
     private String  street;

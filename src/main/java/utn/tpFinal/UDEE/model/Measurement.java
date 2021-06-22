@@ -20,7 +20,7 @@ public class Measurement {
     private Integer id;
 
     @NotNull
-    private Date dateTime;
+    private Date date;
     @NotNull
     private Float kwH;
     @NotNull
@@ -30,4 +30,8 @@ public class Measurement {
     @JoinColumn(name = "id_energy_meter")
     @ToString.Exclude
     private EnergyMeter energyMeter;
+    @ManyToOne
+    @JoinColumn(name = "id_residence")
+    @ToString.Exclude
+    private Residence residence;
 }

@@ -8,7 +8,7 @@ import utn.tpFinal.UDEE.service.ClientService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/client")
+@RequestMapping("/clients")
 public class ClientController {
 
     ClientService clientService;

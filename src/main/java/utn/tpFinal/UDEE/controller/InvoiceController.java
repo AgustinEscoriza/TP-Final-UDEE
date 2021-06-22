@@ -9,7 +9,7 @@ import utn.tpFinal.UDEE.service.InvoiceService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/backoffice/invoice")
+@RequestMapping("/backoffice/invoices")
 public class InvoiceController {
 
     InvoiceService invoiceService;

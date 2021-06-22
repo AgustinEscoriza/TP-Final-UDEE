@@ -4,10 +4,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import utn.tpFinal.UDEE.exceptions.MeterNotFoundException;
 import utn.tpFinal.UDEE.exceptions.WrongPasswordException;
+import utn.tpFinal.UDEE.model.Dto.MeasureRequestDto;
 import utn.tpFinal.UDEE.model.EnergyMeter;
 import utn.tpFinal.UDEE.model.Measurement;
 import utn.tpFinal.UDEE.repository.EnergyMeterRepository;
 import utn.tpFinal.UDEE.repository.MeasurementRepository;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 @Service
 public class MeasurementService {
@@ -22,12 +26,21 @@ public class MeasurementService {
         this.energyMeterRepository = energyMeterRepository;
     }
 
-    public Integer addMeasurement(Measurement measurement, Integer serialNumberEnergyMeter, String password) throws MeterNotFoundException, WrongPasswordException {
-        EnergyMeter energyMeter = energyMeterRepository.findById(serialNumberEnergyMeter)
+    public Integer addMeasurement(MeasureRequestDto dto) throws MeterNotFoundException, WrongPasswordException, ParseException {
+        EnergyMeter energyMeter = energyMeterRepository.findById(Integer.parseInt(dto.getSerialNumber()))
                 .orElseThrow(()->new MeterNotFoundException(this.getClass().getSimpleName(),"addMeasurement"));
-        if(energyMeter.getPassword().equals(password)){
-            measurement.setEnergyMeter(energyMeter);
-            measurement.setBilled(false);
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY-MM-dd HH:mm:ss");
+
+
+        if(energyMeter.getPassword().equals(dto.getPassword())){
+            Measurement measurement = Measurement.builder()
+                    .kwH(dto.getValue())
+                    .energyMeter(energyMeter)
+                    .residence(energyMeter.getResidence())
+                    .date(dateFormat.parse(dto.getDate()))
+                    .billed(false)
+                    .build();
             Measurement newMeasurement = measurementRepository.save(measurement);
             return newMeasurement.getId();
         }else{

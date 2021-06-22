@@ -32,6 +32,7 @@ public class Invoice {
     private Date initialReadingDate;
     private Date finalReadingDate;
 
+    private float finalPrice;
 
     @Column(columnDefinition = "bool default 0")
     private Boolean paid;
@@ -51,10 +52,6 @@ public class Invoice {
     @JoinColumn(name = "energyMeter_serialNumber")
     private EnergyMeter energyMeter;
 
-
-    public float getFinalPayment(){
-        return this.totalConsumption*this.residence.getFeeType().getKwPricePerHour();
-    }
 
 }
 
