@@ -22,13 +22,14 @@ public class MeasurementService {
         this.energyMeterRepository = energyMeterRepository;
     }
 
-    public Measurement addMeasurement(Measurement measurement, Integer serialNumberEnergyMeter, String password) throws MeterNotFoundException, WrongPasswordException {
+    public Integer addMeasurement(Measurement measurement, Integer serialNumberEnergyMeter, String password) throws MeterNotFoundException, WrongPasswordException {
         EnergyMeter energyMeter = energyMeterRepository.findById(serialNumberEnergyMeter)
                 .orElseThrow(()->new MeterNotFoundException(this.getClass().getSimpleName(),"addMeasurement"));
         if(energyMeter.getPassword().equals(password)){
             measurement.setEnergyMeter(energyMeter);
             measurement.setBilled(false);
-            return measurementRepository.save(measurement);
+            Measurement newMeasurement = measurementRepository.save(measurement);
+            return newMeasurement.getId();
         }else{
             throw new WrongPasswordException(this.getClass().getSimpleName(),"addMeasurement");
         }

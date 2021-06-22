@@ -1,6 +1,7 @@
 package utn.tpFinal.UDEE.controller;
 
 import net.kaczmarzyk.spring.data.jpa.domain.Equal;
+import net.kaczmarzyk.spring.data.jpa.domain.IsNull;
 import net.kaczmarzyk.spring.data.jpa.domain.LikeIgnoreCase;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.And;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
@@ -13,7 +14,9 @@ import org.springframework.http.ResponseEntity;
 /*import org.springframework.security.access.prepost.PreAuthorize;*/
 import org.springframework.web.bind.annotation.*;
 import utn.tpFinal.UDEE.exceptions.*;
+import utn.tpFinal.UDEE.model.Dto.EnergyMeterAddDto;
 import utn.tpFinal.UDEE.model.Dto.EnergyMeterDto;
+import utn.tpFinal.UDEE.model.Dto.EnergyMeterPutDto;
 import utn.tpFinal.UDEE.model.Dto.ResidenceDto;
 import utn.tpFinal.UDEE.model.EnergyMeter;
 import utn.tpFinal.UDEE.model.Residence;
@@ -40,15 +43,19 @@ public class EnergyMeterController {
     // METODOS BASE REST
 
     @PostMapping
-    public ResponseEntity addEnergyMeter(@RequestBody EnergyMeter energyMeter,@RequestParam Integer idModel, @RequestParam Integer idBrand) throws ModelNotFoundException, BrandNotFoundException, MeterAlreadyExistException {
-        EnergyMeter meter =  energyMeterService.add(energyMeter, idModel, idBrand);
+    public ResponseEntity addEnergyMeter(@RequestBody EnergyMeterAddDto energyMeter) throws ModelNotFoundException, BrandNotFoundException, MeterAlreadyExistException {
+        Integer newMeterId =  energyMeterService.add(energyMeter);
 
-        URI location = ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .query("id={serialNumberEnergyMeter}")
-                .buildAndExpand(meter.getSerialNumber())
-                .toUri();
-        return ResponseEntity.created(location).build();
+        if(newMeterId != null) {
+            URI location = ServletUriComponentsBuilder
+                    .fromCurrentRequest()
+                    .query("id={serialNumberEnergyMeter}")
+                    .buildAndExpand(newMeterId)
+                    .toUri();
+            return ResponseEntity.created(location).build();
+        }else{
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @GetMapping
@@ -100,8 +107,8 @@ public class EnergyMeterController {
     }
 
     @PutMapping("/{serialNumberEnergyMeter}")
-    public ResponseEntity<EnergyMeterDto> updateMeter(@PathVariable Integer serialNumberEnergyMeter, @RequestBody EnergyMeter energyMeter,@RequestParam Integer idModel, @RequestParam Integer idBrand) throws MeterNotFoundException, ModelNotFoundException, BrandNotFoundException {
-        EnergyMeterDto energyMeterDto = energyMeterService.updateMeter(serialNumberEnergyMeter,energyMeter, idModel, idBrand);
+    public ResponseEntity<EnergyMeterDto> updateMeter(@PathVariable Integer serialNumberEnergyMeter, @RequestBody EnergyMeterPutDto energyMeterPutDto) throws MeterNotFoundException, ModelNotFoundException, BrandNotFoundException {
+        EnergyMeterDto energyMeterDto = energyMeterService.updateMeter(serialNumberEnergyMeter,energyMeterPutDto);
         return ResponseEntity.ok().body(energyMeterDto);
     }
 

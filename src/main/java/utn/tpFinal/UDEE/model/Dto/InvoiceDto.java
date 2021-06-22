@@ -7,7 +7,9 @@ import lombok.NoArgsConstructor;
 import utn.tpFinal.UDEE.model.Invoice;
 import utn.tpFinal.UDEE.model.Residence;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 
 @Data
@@ -43,5 +45,12 @@ public class InvoiceDto {
                 .finalReadingDate(invoice.getFinalReadingDate().toString().substring(0,10))
                 .adress(address)
                 .build();
+    }
+    public static List<InvoiceDto> from (List<Invoice>invoiceList){
+        List<InvoiceDto> invoiceDtos = new ArrayList<InvoiceDto>();
+        for(Invoice i: invoiceList){
+            invoiceDtos.add(InvoiceDto.from(i));
+        }
+        return invoiceDtos;
     }
 }

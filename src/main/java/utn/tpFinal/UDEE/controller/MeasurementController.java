@@ -4,6 +4,7 @@ package utn.tpFinal.UDEE.controller;
 import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,7 +22,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 @RestController
-@RequestMapping("/api/measurements")
+@RequestMapping("/measurements")
 public class MeasurementController {
 
     MeasurementService measurementService;
@@ -37,13 +38,18 @@ public class MeasurementController {
                 .dateTime(dateFormat.parse(dto.getDate()))
                 .kwH(dto.getValue())
                 .build();
-        measurementService.addMeasurement(measurement,Integer.parseInt(dto.getSerialNumber()),dto.getPassword());
-        URI location = ServletUriComponentsBuilder
-                .fromCurrentRequest()
-                .path("")
-                .query("id={idMeasurement}")
-                .buildAndExpand(measurement.getId())
-                .toUri();
-        return ResponseEntity.created(location).build();
+        Integer newMeasureId = measurementService.addMeasurement(measurement,Integer.parseInt(dto.getSerialNumber()),dto.getPassword());
+
+        if(newMeasureId != null){
+            URI location = ServletUriComponentsBuilder
+                    .fromCurrentRequest()
+                    .path("")
+                    .query("id={idMeasurement}")
+                    .buildAndExpand(measurement.getId())
+                    .toUri();
+            return ResponseEntity.created(location).build();
+        }else{
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

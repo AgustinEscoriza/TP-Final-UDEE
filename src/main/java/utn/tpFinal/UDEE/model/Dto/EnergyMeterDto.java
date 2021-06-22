@@ -32,9 +32,9 @@ public class EnergyMeterDto {
                 .password(energyMeter.getPassword())
                 .build();
 
-        if(energyMeter.getMeasure() == null) energyMeterDto.setMeasureSenderDto(MeasureSenderDto.from(energyMeter.getMeasure()));
+        if(energyMeter.getMeasure() != null) energyMeterDto.setMeasureSenderDto(MeasureSenderDto.from(energyMeter.getMeasure()));
 
-        if(energyMeter.getResidence() == null){
+        if(energyMeter.getResidence() != null){
             energyMeterDto.setResidenceNumber(energyMeter.getResidence().getNumber());
             energyMeterDto.setResidenceStreet(energyMeter.getResidence().getStreet());
         }
