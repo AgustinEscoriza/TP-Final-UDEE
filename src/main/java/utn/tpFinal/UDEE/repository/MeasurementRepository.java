@@ -8,9 +8,12 @@ import org.springframework.stereotype.Repository;
 import utn.tpFinal.UDEE.model.Measurement;
 
 import java.util.Date;
+import java.util.List;
 
 @Repository
 public interface MeasurementRepository extends JpaRepository<Measurement, Integer> {
-    @Query(value = "SELECT * FROM measurements  WHERE  id = :idResidence AND date BETWEEN :from AND :to", nativeQuery = true)
-    Page<Measurement> getAllResidenceIdAndDateBetween(Integer idResidence, Date from, Date to, Pageable pageable);
+    /*@Query(value = "SELECT * FROM measurements  WHERE  id = :idResidence AND date BETWEEN :from AND :to", nativeQuery = true)*/
+    Page<Measurement> findByResidenceIdAndDateBetween(Integer idResidence, Date from, Date to, Pageable pageable);
+
+    Page<Measurement> findByResidenceIdInAndDateBetween(List<Integer> residencesIds, Date from, Date to, Pageable pageable);
 }

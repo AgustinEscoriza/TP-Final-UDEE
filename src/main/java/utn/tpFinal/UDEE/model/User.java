@@ -1,6 +1,7 @@
 package utn.tpFinal.UDEE.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,7 +19,6 @@ import javax.validation.constraints.NotNull;
 public class User {
 
     @Id
-    @NotNull
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     @NotNull
@@ -31,4 +31,7 @@ public class User {
     private String password;
     @NotNull
     private Boolean isEmployee;
+    @OneToOne(mappedBy = "user",fetch = FetchType.LAZY,cascade = CascadeType.ALL)
+    @JsonIgnore
+    private Client client;
 }

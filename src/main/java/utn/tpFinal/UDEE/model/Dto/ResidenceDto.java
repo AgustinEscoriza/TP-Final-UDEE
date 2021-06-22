@@ -21,15 +21,17 @@ public class ResidenceDto {
     private String number;
     private Integer postalNumber;
     private FeeType feeType;
+    private List<InvoiceDto> invoices;
     private EnergyMeterDto energyMeter;
 
     public static ResidenceDto from(Residence residence){
         return ResidenceDto.builder()
                 .street(residence.getStreet())
                 .id(residence.getId())
+                .invoices(InvoiceDto.from(residence.getInvoices()))
                 .number(residence.getNumber())
                 .postalNumber(residence.getPostalNumber())
-                .feeType(residence.getFeeType())
+                .feeType(FeeType.builder().id(residence.getFeeType().getId()).kwPricePerHour(residence.getFeeType().getKwPricePerHour()).detail(residence.getFeeType().getDetail()).build())
                 .energyMeter(EnergyMeterDto.from(residence.getEnergyMeter()))
                 .build();
     }

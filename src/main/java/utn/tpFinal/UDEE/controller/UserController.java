@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.Response;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.web.bind.annotation.*;
 import utn.tpFinal.UDEE.exceptions.ApiError;
 import utn.tpFinal.UDEE.exceptions.UnauthorizedToAddEmployeeException;
+import utn.tpFinal.UDEE.exceptions.UserNotFoundException;
 import utn.tpFinal.UDEE.model.Dto.LoginRequestDto;
 import utn.tpFinal.UDEE.model.Dto.LoginResponseDto;
 import utn.tpFinal.UDEE.model.Dto.UserDto;
@@ -24,13 +26,14 @@ import utn.tpFinal.UDEE.model.User;
 import utn.tpFinal.UDEE.service.UserService;
 import utn.tpFinal.UDEE.util.Constants;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
-@RequestMapping(value = "/api/users")
+@RequestMapping(value = "")
 public class UserController {
 
     private UserService userService;
@@ -46,7 +49,7 @@ public class UserController {
         this.modelMapper = modelMapper;
     }
 
-    @PostMapping
+    @PostMapping("/api/users")
     public  ResponseEntity<UserDto> addUser(@RequestBody  User user  ){
         UserDto userDTO = new UserDto();
         try{
@@ -56,7 +59,7 @@ public class UserController {
         }
         return ResponseEntity.ok().body(userDTO);
     }
-    @PostMapping(value = "/login")
+    @PostMapping(value = "/api/users/login")
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequestDto) {
         log.info(loginRequestDto.toString());
         User user = userService.login(loginRequestDto.getEmail(), loginRequestDto.getPassword());
@@ -66,6 +69,16 @@ public class UserController {
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
+    }
+    @DeleteMapping(value ="/backoffice/users/{userId}")
+    public ResponseEntity delete(@RequestParam Integer userId) throws UserNotFoundException {
+        Boolean deleted = false;
+        deleted = userService.deleteUser(userId);
+        if(!deleted){
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok().build();
     }
 
     /*@GetMapping(value = "/details")
@@ -83,6 +96,8 @@ public class UserController {
             else {
                 grantedAuthorities = AuthorityUtils.commaSeparatedStringToAuthorityList("CLIENT");
             }
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(2023,11,11);
             String token = Jwts
                     .builder()
                     .setId("JWT")
@@ -90,7 +105,7 @@ public class UserController {
                     .claim("user", objectMapper.writeValueAsString(userDto))
                     .claim("authorities",grantedAuthorities.stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
                     .setIssuedAt(new Date(System.currentTimeMillis()))
-                    .setExpiration(new Date(System.currentTimeMillis() + 1000000))
+                    .setExpiration( calendar.getTime())
                     .signWith(SignatureAlgorithm.HS512, Constants.JWT_SECRET.getBytes()).compact();
             return  token;
         } catch(Exception e) {

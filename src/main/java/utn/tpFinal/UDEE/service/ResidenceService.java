@@ -6,15 +6,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 import utn.tpFinal.UDEE.exceptions.*;
 import utn.tpFinal.UDEE.model.*;
 import utn.tpFinal.UDEE.model.Dto.*;
 import utn.tpFinal.UDEE.repository.*;
 
-import java.util.Date;
 import java.util.List;
 
 import static java.util.Objects.isNull;
@@ -27,15 +24,18 @@ public class ResidenceService {
     EnergyMeterRepository energyMeterRepository;
     MeasurementRepository measurementRepository;
     InvoiceRepository invoiceRepository;
+    FeeTypeRepository feeTypeRepository;
 
 
     @Autowired
-    public ResidenceService(ResidenceRepository residenceRepository, ClientRepository clientRepository, EnergyMeterRepository energyMeterRepository,MeasurementRepository measurementRepository,InvoiceRepository invoiceRepository){
+    public ResidenceService(ResidenceRepository residenceRepository, ClientRepository clientRepository, EnergyMeterRepository energyMeterRepository
+            ,MeasurementRepository measurementRepository,InvoiceRepository invoiceRepository, FeeTypeRepository feeTypeRepository){
         this.residenceRepository = residenceRepository;
         this.clientRepository = clientRepository;
         this.energyMeterRepository = energyMeterRepository;
         this.measurementRepository = measurementRepository;
         this.invoiceRepository = invoiceRepository;
+        this.feeTypeRepository = feeTypeRepository;
     }
 
     public Page<ResidenceDto> getAll(Specification<Residence> residenceSpecification, Integer page,Integer size,List<Sort.Order> orders){
@@ -47,10 +47,10 @@ public class ResidenceService {
         }
         return residenceDtos;
     }
-    public Integer addResidence(ResidenceAddDto residenceAddDto) throws ResidenceAlreadyExists, ClientNotFoundException, MeterNotFoundException, MeterAlreadyHasResidenceException {
+    public Integer addResidence(ResidenceAddDto residenceAddDto) throws ResidenceAlreadyExists, ClientNotFoundException, MeterNotFoundException, MeterAlreadyHasResidenceException, FeeTypeNotFoundException {
         Client client = clientRepository.findById(residenceAddDto.getIdClient()).orElseThrow(()-> new ClientNotFoundException(this.getClass().getSimpleName(),"addResidence"));
         EnergyMeter energyMeter = energyMeterRepository.findById(residenceAddDto.getEnergyMeterSerialNumber()).orElseThrow(()-> new MeterNotFoundException(this.getClass().getSimpleName(),"addResidence"));
-        FeeType feeType = FeeType.of(residenceAddDto.getFee_value());
+        FeeType feeType = feeTypeRepository.findById(residenceAddDto.getFee_value()).orElseThrow(()-> new FeeTypeNotFoundException(this.getClass().getSimpleName(),"addResidence"));
 
         if(!isNull(energyMeter.getResidence())){
             throw new MeterAlreadyHasResidenceException(this.getClass().getSimpleName(),"addResidence");
@@ -61,7 +61,7 @@ public class ResidenceService {
                 .number(residenceAddDto.getNumber())
                 .postalNumber(residenceAddDto.getPostal_number())
                 .street(residenceAddDto.getStreet())
-                .feeValue(residenceAddDto.getFee_value())
+                .feeType(feeType)
                 .build();
 
         Residence newResidence = residenceRepository.save(residence);
@@ -81,14 +81,13 @@ public class ResidenceService {
         return deleted;
     }
 
-    public ResidenceDto updateResidence(Integer residenceId, ResidencePutDto residencePutDto) throws ClientNotFoundException, ResidenceNotFoundException, MeterNotFoundException {
+    public ResidenceDto updateResidence(Integer residenceId, ResidencePutDto residencePutDto) throws ClientNotFoundException, ResidenceNotFoundException, MeterNotFoundException, FeeTypeNotFoundException {
         Residence previousResidence = residenceRepository.findById(residenceId).orElseThrow(()-> new ResidenceNotFoundException(this.getClass().getSimpleName(),"updateResidence"));
         Client client = clientRepository.findById(residencePutDto.getIdClient()).orElseThrow(()-> new ClientNotFoundException(this.getClass().getSimpleName(), "updateResidence"));
-        FeeType feeType = FeeType.of(residencePutDto.getFee_value());
+        FeeType feeType = feeTypeRepository.findById(residencePutDto.getFee_value()).orElseThrow(()-> new FeeTypeNotFoundException(this.getClass().getSimpleName(),"addResidence"));
         EnergyMeter energyMeter = energyMeterRepository.findById(residencePutDto.getEnergyMeterSerialNumber()).orElseThrow(()-> new MeterNotFoundException(this.getClass().getSimpleName(),"updateResidence"));
 
         Residence residence = Residence.builder()
-                .feeValue(residencePutDto.getFee_value())
                 .feeType(feeType)
                 .energyMeter(energyMeter)
                 .client(client)
@@ -111,7 +110,7 @@ public class ResidenceService {
             throw new ResidenceNotFoundException(this.getClass().getSimpleName(),"getUnpaidInvoices");
         }
 
-        Page<Invoice> invoices = invoiceRepository.findByPaidFalseAndResidenceId(residenceId,pageable);
+        Page<Invoice> invoices = invoiceRepository.findByPaidAndResidenceId(false,residenceId,pageable);
 
 
         Page<InvoiceDto> invoiceDtos = Page.empty();
@@ -122,9 +121,9 @@ public class ResidenceService {
         return invoiceDtos;
     }
 
-    public Page<MeasureResponseDto> getResidenceMeasuresBetweenDates(Integer idResidence,ResidenceMeasuresByDatesDto requestDto, Integer page, Integer size,List<Sort.Order> orders){
+    public Page<MeasureResponseDto> getResidenceMeasuresBetweenDates(Integer idResidence, DatesFromAndToDto requestDto, Integer page, Integer size, List<Sort.Order> orders){
         Pageable pageable = PageRequest.of(page, size, Sort.by(orders));
-        Page<Measurement> measurements = measurementRepository.getAllResidenceIdAndDateBetween(idResidence, requestDto.getFrom(),requestDto.getTo(),pageable);
+        Page<Measurement> measurements = measurementRepository.findByResidenceIdAndDateBetween(idResidence, requestDto.getFrom(),requestDto.getTo(),pageable);
 
 
         Page<MeasureResponseDto> measurementDtos = Page.empty();

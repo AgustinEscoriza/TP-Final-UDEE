@@ -11,7 +11,7 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ResidenceMeasuresByDatesDto {
+public class DatesFromAndToDto {
 
     private Date from;
 

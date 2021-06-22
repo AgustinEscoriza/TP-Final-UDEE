@@ -13,15 +13,18 @@ import utn.tpFinal.UDEE.filter.JWTAuthorizationFilter;
 @EnableWebSecurity
 @Configuration
 @EnableGlobalMethodSecurity(prePostEnabled = true)
-public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
+public class WebSecurity extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable().authorizeRequests()
-                /*.antMatchers("/api/**").permitAll()
+        http.csrf().disable()
+                .addFilterAfter(new JWTAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class)
+                .authorizeRequests()
+                .antMatchers("/measurements").permitAll()
+                .antMatchers("/api/**").permitAll()
                 .antMatchers("/backoffice/**").hasAuthority("BACKOFFICE")
-                .antMatchers("/client/**").hasAnyAuthority("BACKOFFICE","CLIENT")*/
-                .anyRequest().permitAll(); //authenticated();
+                .antMatchers("/client/**").hasAnyAuthority("BACKOFFICE","CLIENT")
+                .anyRequest().authenticated(); //authenticated();permitAll()
 
                  /*.antMatchers(HttpMethod.POST, "/api/users").permitAll()
                 .antMatchers(HttpMethod.POST,"/api/users/login").permitAll()

@@ -1,38 +1,34 @@
 package utn.tpFinal.UDEE.model;
 
 
-import java.util.stream.Stream;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.*;
 
-public enum FeeType {
-    RESIDENTIAL(1,"RESIDENTIAL",60),
-    COMERTIAL(2,"COMERTIAL",75),
-    INDUSTRIAL(3,"INDUSTRIAL",40),
-    OTHER(4,"OTHER",65);
+import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import java.util.List;
 
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@Entity
+@Table(name = "feeTypes")
+public class FeeType {
+
+    @Id
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Integer id;
+    @NotNull
     private String detail;
+    @NotNull
     private Integer kwPricePerHour;
 
-    FeeType(Integer id, String detail, Integer pricePerKwh) {
-        this.id = id;
-        this.detail = detail;
-        this.kwPricePerHour = pricePerKwh;
-    }
 
-    public Integer getId() { return id; }
 
-    public String getDetail() {
-        return detail;
-    }
+    @OneToMany(mappedBy = "feeType",fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<Residence> residenceList;
 
-    public Integer getKwPricePerHour() {
-        return kwPricePerHour;
-    }
-
-    public static FeeType of(int feeValue) {
-        return Stream.of(FeeType.values())
-                .filter(p -> p.getId() == feeValue)
-                .findFirst()
-                .orElseThrow(IllegalArgumentException::new);
-    }
 }

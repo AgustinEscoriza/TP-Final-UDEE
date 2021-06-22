@@ -38,6 +38,7 @@ public class MeasurementService {
                     .kwH(dto.getValue())
                     .energyMeter(energyMeter)
                     .residence(energyMeter.getResidence())
+                    .residence(energyMeter.getResidence())
                     .date(dateFormat.parse(dto.getDate()))
                     .billed(false)
                     .build();

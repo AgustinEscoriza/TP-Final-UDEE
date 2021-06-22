@@ -10,8 +10,11 @@ import utn.tpFinal.UDEE.model.Measurement;
 import utn.tpFinal.UDEE.model.Residence;
 
 import java.util.Date;
+import java.util.List;
 
 @Repository
 public interface ResidenceRepository extends JpaRepository<Residence, Integer> {
     Page<Residence> findAll(Specification<Residence> residenceSpecification, Pageable pageable);
+
+    List<Residence> findByClientDni(Integer dni);
 }

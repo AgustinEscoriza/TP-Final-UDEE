@@ -18,16 +18,15 @@ import java.util.List;
 public class Client {
 
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
-    private Integer id;
+    private Integer dni;
 
     @OneToMany(mappedBy = "client",fetch = FetchType.LAZY,
             cascade = CascadeType.ALL)
-    private List<Residence> residence;
+    private List<Residence> residences;
 
     @OneToMany(mappedBy = "client",fetch = FetchType.LAZY,
             cascade = CascadeType.ALL)
-    private List<Invoice> invoice;
+    private List<Invoice> invoices;
 
     @OneToOne
     @JoinColumn(name="user",foreignKey = @ForeignKey(name="FK_clients_users"))

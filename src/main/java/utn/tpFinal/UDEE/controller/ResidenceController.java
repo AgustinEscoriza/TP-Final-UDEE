@@ -34,7 +34,7 @@ public class ResidenceController {
 
 
     @PostMapping
-    public ResponseEntity addResidence(@RequestBody ResidenceAddDto residence) throws ResidenceAlreadyExists, MeterNotFoundException, ClientNotFoundException, MeterAlreadyHasResidenceException {
+    public ResponseEntity addResidence(@RequestBody ResidenceAddDto residence) throws ResidenceAlreadyExists, MeterNotFoundException, ClientNotFoundException, MeterAlreadyHasResidenceException, FeeTypeNotFoundException {
         Integer newResidenceId = residenceService.addResidence(residence);
         if(newResidenceId != null){
             URI location = ServletUriComponentsBuilder
@@ -82,7 +82,7 @@ public class ResidenceController {
     }
 
     @PutMapping("/{idResidence}")
-    public ResponseEntity<ResidenceDto> updateResidence(@PathVariable Integer idResidence,@RequestBody ResidencePutDto residencePutDto) throws ResidenceNotFoundException, ClientNotFoundException, MeterNotFoundException {
+    public ResponseEntity<ResidenceDto> updateResidence(@PathVariable Integer idResidence,@RequestBody ResidencePutDto residencePutDto) throws ResidenceNotFoundException, ClientNotFoundException, MeterNotFoundException, FeeTypeNotFoundException {
         residenceService.updateResidence(idResidence,residencePutDto);
         return ResponseEntity.ok().build();
     }
@@ -113,7 +113,7 @@ public class ResidenceController {
     //CONSULTA MEDICIONES POR RANGO DE FECHAS
     @GetMapping("/{idResidence}/measures")
     public ResponseEntity<List<MeasureResponseDto>> getResidenceMeasuresByDates(@PathVariable Integer idResidence,
-                                                                                @RequestBody ResidenceMeasuresByDatesDto residenceMeasuresByDatesDto,
+                                                                                @RequestBody DatesFromAndToDto datesFromAndToDto,
                                                                                 @RequestParam(defaultValue = "0") Integer page,
                                                                                 @RequestParam(defaultValue = "5") Integer size,
                                                                                 @RequestParam(defaultValue = "id") String sortField1,
@@ -122,7 +122,7 @@ public class ResidenceController {
         orders.add(new Sort.Order(Sort.Direction.ASC, sortField1));
         orders.add(new Sort.Order(Sort.Direction.ASC, sortField2));
 
-        Page<MeasureResponseDto> measures = residenceService.getResidenceMeasuresBetweenDates(idResidence,residenceMeasuresByDatesDto, page, size, orders);
+        Page<MeasureResponseDto> measures = residenceService.getResidenceMeasuresBetweenDates(idResidence, datesFromAndToDto, page, size, orders);
 
         if(measures.isEmpty()){
             return ResponseEntity.noContent().build();

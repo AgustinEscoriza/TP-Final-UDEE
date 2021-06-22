@@ -5,6 +5,7 @@ import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -25,11 +26,16 @@ public class Residence {
     @NotNull
     private Integer postalNumber;
 
-    @Transient
+
+    @ManyToOne(fetch= FetchType.LAZY)
+    @JoinColumn(name="id_fee_type")
+    @ToString.Exclude
+    @JsonIgnore
     private FeeType feeType;
 
-    @Basic
-    private Integer feeValue;
+    @OneToMany(mappedBy = "residence",fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL)
+    private List<Invoice> invoices;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "energyMeter_serialNumber")
@@ -41,16 +47,4 @@ public class Residence {
     @ToString.Exclude
     private Client client;
 
-    @PostLoad
-    void fillTransient() {
-        if (feeValue > 0) {
-            this.feeType = FeeType.of(feeValue);
-        }
-    }
-    @PrePersist
-    void fillPersistent() {
-        if (feeType != null) {
-            this.feeValue = feeType.getId();
-        }
-    }
 }
