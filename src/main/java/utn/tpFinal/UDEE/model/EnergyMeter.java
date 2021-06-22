@@ -1,10 +1,7 @@
 package utn.tpFinal.UDEE.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.context.annotation.Bean;
 
 import javax.persistence.*;
@@ -21,7 +18,6 @@ import java.util.List;
 public class EnergyMeter {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @NotEmpty(message = "Serial Number Missing.")
     private Integer serialNumber;
 
@@ -30,19 +26,21 @@ public class EnergyMeter {
 
     @ManyToOne
     @JoinColumn(name="id_model")
+    @ToString.Exclude
+    @JsonIgnore
     private MeterModel meterModel;
 
     @ManyToOne
     @JoinColumn(name="id_brand")
+    @ToString.Exclude
+    @JsonIgnore
     private Brand brand;
 
     @OneToOne(mappedBy = "energyMeter")
-    @JsonIgnore
     private Residence residence;
 
-    @OneToMany(mappedBy = "energyMeter",fetch = FetchType.LAZY,
+    @OneToMany(mappedBy = "energyMeter",fetch = FetchType.EAGER,
             cascade = CascadeType.ALL)
-    @JsonIgnore
     private List<Measurement> measure;
 
 }

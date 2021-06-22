@@ -19,15 +19,5 @@ public class ResidenceService {
         this.residenceRepository = residenceRepository;
     }
 
-    public List<Residence> getAll() {
-        return residenceRepository.findAll();
-    }
 
-    public Residence getByID(Integer id) {
-        return residenceRepository.findById(id).orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
-    }
-
-    public void add(Residence residence) {
-        residenceRepository.save(residence);
-    }
 }

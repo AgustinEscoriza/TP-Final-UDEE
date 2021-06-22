@@ -12,13 +12,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 /*import org.springframework.security.access.prepost.PreAuthorize;*/
 import org.springframework.web.bind.annotation.*;
-import utn.tpFinal.UDEE.exceptions.BrandNotFoundException;
-import utn.tpFinal.UDEE.exceptions.MeterNotFoundException;
-import utn.tpFinal.UDEE.exceptions.ModelNotFoundException;
-import utn.tpFinal.UDEE.exceptions.ResidenceNotFoundException;
+import utn.tpFinal.UDEE.exceptions.*;
 import utn.tpFinal.UDEE.model.Dto.EnergyMeterDto;
 import utn.tpFinal.UDEE.model.Dto.ResidenceDto;
 import utn.tpFinal.UDEE.model.EnergyMeter;
+import utn.tpFinal.UDEE.model.Residence;
 import utn.tpFinal.UDEE.service.BrandService;
 import utn.tpFinal.UDEE.service.EnergyMeterService;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -29,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/backOffice/meters")
+@RequestMapping("/backoffice/meters")
 public class EnergyMeterController {
 
     private EnergyMeterService energyMeterService;
@@ -41,14 +39,12 @@ public class EnergyMeterController {
 
     // METODOS BASE REST
 
-   /* @PreAuthorize(value = "hasAuthority('EMPLOYEE')")*/
     @PostMapping
-    public ResponseEntity addEnergyMeter(@RequestBody EnergyMeter energyMeter,@RequestParam Integer idModel, @RequestParam Integer idBrand) throws ModelNotFoundException, BrandNotFoundException {
+    public ResponseEntity addEnergyMeter(@RequestBody EnergyMeter energyMeter,@RequestParam Integer idModel, @RequestParam Integer idBrand) throws ModelNotFoundException, BrandNotFoundException, MeterAlreadyExistException {
         EnergyMeter meter =  energyMeterService.add(energyMeter, idModel, idBrand);
 
         URI location = ServletUriComponentsBuilder
                 .fromCurrentRequest()
-                .path("/")
                 .query("id={serialNumberEnergyMeter}")
                 .buildAndExpand(meter.getSerialNumber())
                 .toUri();
@@ -59,11 +55,14 @@ public class EnergyMeterController {
     public ResponseEntity<List<EnergyMeterDto>> getAll(@RequestParam(defaultValue = "0") Integer page,
                                                     @RequestParam(defaultValue = "5") Integer size,
                                                     @RequestParam(defaultValue = "serialNumber") String sortField1,
+                                                    @RequestParam(defaultValue = "meterModel") String sortField2,
                                                     @And({
-                                                            @Spec(path = "serialNumber", spec = LikeIgnoreCase.class)
+                                                            @Spec(path = "serialNumber", spec = Equal.class),
+                                                            @Spec(path = "meterModel",spec =LikeIgnoreCase.class)
                                                     }) Specification<EnergyMeter> meterSpecification){
         List<Sort.Order> orderList = new ArrayList<>();
         orderList.add(new Sort.Order(Sort.Direction.ASC, sortField1));
+        orderList.add(new Sort.Order(Sort.Direction.ASC, sortField2));
 
         Page<EnergyMeterDto> meters = energyMeterService.getAll(meterSpecification, page, size, orderList);
         if(meters.isEmpty()) {
@@ -75,14 +74,16 @@ public class EnergyMeterController {
                     .header("X-Total-Pages", Long.toString(meters.getTotalPages()))
                     .header("X-Actual-Page",Integer.toString(page))
                     .header("X-First-Sort-By", sortField1)
+                    .header("X-Second-Sort-By", sortField2)
                     .body(meters.getContent());
         }
     }
 
- /*   @PreAuthorize(value = "hasAuthority('EMPLOYEE')")*/
     @DeleteMapping("/{serialNumberEnergyMeter}")
-    public ResponseEntity deleteEnergyMeterBySerialNumber(@PathVariable Integer serialNumberMeter ) throws MeterNotFoundException {
-        Boolean deleted = energyMeterService.deleteEnergyMeterBySerialNumber(serialNumberMeter);
+    public ResponseEntity deleteEnergyMeterBySerialNumber(@PathVariable Integer serialNumberEnergyMeter ) throws MeterNotFoundException {
+        Boolean deleted = false;
+        deleted = energyMeterService.deleteEnergyMeterBySerialNumber(serialNumberEnergyMeter);
+
 
         if(!deleted){
             return ResponseEntity.notFound().build();
@@ -91,24 +92,25 @@ public class EnergyMeterController {
         return ResponseEntity.ok().build();
     }
 
-   /* @PreAuthorize(value = "hasAuthority('EMPLOYEE')")*/
     @GetMapping("/{serialNumberEnergyMeter}")
-    public ResponseEntity<EnergyMeterDto> getEnergyMeterBySerialNumber(@PathVariable Integer serialNumberMeter) throws MeterNotFoundException {
-        EnergyMeterDto energyMeterDto = energyMeterService.getBySerialNumber(serialNumberMeter);
+    public ResponseEntity<EnergyMeterDto> getEnergyMeterBySerialNumber(@PathVariable Integer serialNumberEnergyMeter) throws MeterNotFoundException {
+        EnergyMeterDto energyMeterDto;
+        energyMeterDto = energyMeterService.getBySerialNumber(serialNumberEnergyMeter);
         return ResponseEntity.ok().body(energyMeterDto);
     }
 
-    /*@PreAuthorize(value = "hasAuthority('EMPLOYEE')")*/
     @PutMapping("/{serialNumberEnergyMeter}")
-    public ResponseEntity<EnergyMeterDto> updateMeter(@PathVariable Integer serialNumberMeter, @RequestBody EnergyMeter energyMeter) throws MeterNotFoundException{
-        EnergyMeterDto energyMeterDto = energyMeterService.updateMeter(serialNumberMeter,energyMeter);
+    public ResponseEntity<EnergyMeterDto> updateMeter(@PathVariable Integer serialNumberEnergyMeter, @RequestBody EnergyMeter energyMeter,@RequestParam Integer idModel, @RequestParam Integer idBrand) throws MeterNotFoundException, ModelNotFoundException, BrandNotFoundException {
+        EnergyMeterDto energyMeterDto = energyMeterService.updateMeter(serialNumberEnergyMeter,energyMeter, idModel, idBrand);
         return ResponseEntity.ok().body(energyMeterDto);
     }
 
-    /*@PreAuthorize(value = "hasAuthority('EMPLOYEE')")*/
+
+    //
     @GetMapping("/{serialNumberEnergyMeter}/residence")
-    public ResponseEntity<ResidenceDto> getResidenceByEnergyMeterId(@PathVariable Integer serialNumberMeter) throws MeterNotFoundException, ResidenceNotFoundException {
-        ResidenceDto residence = energyMeterService.getResidenceByMeterSerialNumber(serialNumberMeter);
+    public ResponseEntity<ResidenceDto> getResidenceByEnergyMeterSerialNumber(@PathVariable Integer serialNumberEnergyMeter) throws MeterNotFoundException, ResidenceNotFoundException {
+
+        ResidenceDto residence = energyMeterService.getResidenceByMeterSerialNumber(serialNumberEnergyMeter);
         return ResponseEntity.ok(residence);
     }
 

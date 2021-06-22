@@ -1,10 +1,7 @@
 package utn.tpFinal.UDEE.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -37,10 +34,12 @@ public class Residence {
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "energyMeter_serialNumber")
+    @ToString.Exclude
     private EnergyMeter energyMeter;
 
     @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
+    @ToString.Exclude
     private Client client;
 
     @PostLoad

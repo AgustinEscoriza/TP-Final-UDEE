@@ -7,18 +7,17 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import utn.tpFinal.UDEE.exceptions.BrandNotFoundException;
-import utn.tpFinal.UDEE.exceptions.MeterNotFoundException;
-import utn.tpFinal.UDEE.exceptions.ModelNotFoundException;
-import utn.tpFinal.UDEE.exceptions.ResidenceNotFoundException;
+import org.springframework.web.bind.annotation.RequestParam;
+import utn.tpFinal.UDEE.exceptions.*;
 import utn.tpFinal.UDEE.model.Brand;
 import utn.tpFinal.UDEE.model.Dto.EnergyMeterDto;
+import utn.tpFinal.UDEE.model.Dto.MeasureSenderDto;
 import utn.tpFinal.UDEE.model.Dto.ResidenceDto;
 import utn.tpFinal.UDEE.model.EnergyMeter;
 import utn.tpFinal.UDEE.model.MeterModel;
 import utn.tpFinal.UDEE.model.Residence;
 import utn.tpFinal.UDEE.repository.BrandRepository;
-import utn.tpFinal.UDEE.repository.ModelRepository;
+import utn.tpFinal.UDEE.repository.MeterModelRepository;
 import utn.tpFinal.UDEE.repository.EnergyMeterRepository;
 
 import java.util.List;
@@ -34,32 +33,38 @@ public class EnergyMeterService {
     @Autowired
     private BrandRepository brandRepository;
     @Autowired
-    private ModelRepository modelRepository;
+    private MeterModelRepository meterModelRepository;
 
     public EnergyMeter getEnergyMeterBySerialNumber(Integer serial) throws MeterNotFoundException {
         return energyMeterRepository.findBySerialNumber(serial)
                 .orElseThrow(() -> new MeterNotFoundException(this.getClass().getSimpleName(), "getEnergyMeterBySerialNumber"));
     }
 
-    public EnergyMeter add(EnergyMeter energyMeter,Integer idModel,Integer idBrand) throws ModelNotFoundException, BrandNotFoundException {
-        Brand brand = brandRepository.findById(idBrand).orElseThrow(()-> new BrandNotFoundException(this.getClass().getSimpleName(),"addEnergyMeter"));
-        energyMeter.setBrand(brand);
+    public EnergyMeter add(EnergyMeter energyMeter,Integer idModel,Integer idBrand) throws ModelNotFoundException, BrandNotFoundException, MeterAlreadyExistException {
 
-        MeterModel meterModel = modelRepository.findById(idModel).orElseThrow(()-> new ModelNotFoundException(this.getClass().getSimpleName(),"addEnergyMeter"));
-        energyMeter.setMeterModel(meterModel);
-        meterModel.getEnergyMeters().add(energyMeter);
-        modelRepository.save(meterModel);
+        if(!energyMeterRepository.existsById(energyMeter.getSerialNumber())){
+            Brand brand = brandRepository.findById(idBrand).orElseThrow(()-> new BrandNotFoundException(this.getClass().getSimpleName(),"addEnergyMeter"));
+            energyMeter.setBrand(brand);
 
-        return energyMeterRepository.save(energyMeter);
+            MeterModel meterModel = meterModelRepository.findById(idModel).orElseThrow(()-> new ModelNotFoundException(this.getClass().getSimpleName(),"addEnergyMeter"));
+            energyMeter.setMeterModel(meterModel);
+            meterModel.getEnergyMeters().add(energyMeter);
+            meterModelRepository.save(meterModel);
+
+            return energyMeterRepository.save(energyMeter);
+        }else {
+            throw new MeterAlreadyExistException(this.getClass().getSimpleName(),"add");
+        }
     }
 
     public Page<EnergyMeterDto> getAll(Specification<EnergyMeter> meterSpecification, Integer page, Integer size, List<Sort.Order>orderList) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(orderList));
         Page<EnergyMeter>meters = energyMeterRepository.findAll(meterSpecification,pageable);
         Page<EnergyMeterDto> dtoMeters= Page.empty();
-
-        if(!meters.isEmpty())
-            dtoMeters=meters.map(m-> EnergyMeterDto.from(m));
+        List<EnergyMeterDto> listDto = null;
+        if(!meters.isEmpty()){
+            dtoMeters = meters.map(m->EnergyMeterDto.from(m));
+        }
 
         return  dtoMeters;
     }
@@ -68,7 +73,9 @@ public class EnergyMeterService {
         EnergyMeter energyMeter = energyMeterRepository.findBySerialNumber(serialNumber)
                 .orElseThrow(() -> new MeterNotFoundException(this.getClass().getSimpleName(), "getBySerialNumber"));
         EnergyMeterDto energyMeterDto = new EnergyMeterDto();
+
         energyMeterDto = energyMeterDto.from(energyMeter);
+
         return energyMeterDto;
     }
     public Boolean deleteEnergyMeterBySerialNumber(Integer meterSerialNumber) throws MeterNotFoundException {
@@ -83,33 +90,35 @@ public class EnergyMeterService {
         return deleted;
     };
 
-    public EnergyMeterDto updateMeter(Integer serialNumber, EnergyMeter newEnergyMeter) throws MeterNotFoundException {
-        Optional<EnergyMeter> energyMeter = energyMeterRepository.findBySerialNumber(serialNumber);
+    public EnergyMeterDto updateMeter(Integer serialNumber, EnergyMeter newEnergyMeter,  Integer idModel, Integer idBrand) throws MeterNotFoundException, BrandNotFoundException, ModelNotFoundException {
+        EnergyMeter energyMeter = energyMeterRepository.findById(serialNumber)
+                .orElseThrow(()->new MeterNotFoundException(this.getClass().getSimpleName(),"updateMeter"));
+        Brand brand = brandRepository.findById(idBrand)
+                .orElseThrow(()->new BrandNotFoundException(this.getClass().getSimpleName(),"updateMeter"));
+        MeterModel model = meterModelRepository.findById(idModel)
+                .orElseThrow(()->new ModelNotFoundException(this.getClass().getSimpleName(),"updateMeter"));
+
         EnergyMeterDto energyMeterDto = new EnergyMeterDto();
-        if(energyMeter.isPresent()){
-            newEnergyMeter.setSerialNumber(serialNumber);
-            EnergyMeter updatedMeter = energyMeterRepository.save(newEnergyMeter);
-            energyMeterDto = energyMeterDto.from(updatedMeter);
-        }else{
-            throw new MeterNotFoundException(this.getClass().getSimpleName(),"updateMeter");
-        }
+        newEnergyMeter.setSerialNumber(serialNumber);
+        newEnergyMeter.setBrand(brand);
+        newEnergyMeter.setMeterModel(model);
+        EnergyMeter updatedMeter = energyMeterRepository.save(newEnergyMeter);
+
+        energyMeterDto = energyMeterDto.from(updatedMeter);
+
 
         return energyMeterDto;
     };
 
 
     public ResidenceDto getResidenceByMeterSerialNumber(Integer serialNumber)throws MeterNotFoundException, ResidenceNotFoundException {
-        EnergyMeter energyMeter = getEnergyMeterBySerialNumber(serialNumber);
-        Residence residence = energyMeter.getResidence();
-
-
-        if(isNull(residence)){
-            throw new ResidenceNotFoundException(this.getClass().getSimpleName(),"getResidenceByEnergyMeterId");
+        EnergyMeter energyMeter = energyMeterRepository.findById(serialNumber).orElseThrow(()-> new MeterNotFoundException(this.getClass().getSimpleName(),"getResidenceByMeterSerialNumber"));
+        Residence residence = new Residence();
+        if(energyMeter.getResidence() != null){
+            return ResidenceDto.from(energyMeter.getResidence());
+        }else{
+            throw new ResidenceNotFoundException(this.getClass().getSimpleName(),"getResidenceByMeterSerialNumber");
         }
-        return ResidenceDto.from(residence);
     }
 
-    public void add(EnergyMeter energyMeter) {
-        energyMeterRepository.save(energyMeter);
-    }
 }

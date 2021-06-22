@@ -68,14 +68,21 @@ public class UserController {
         }
     }
 
-    @GetMapping(value = "/details")
+    /*@GetMapping(value = "/details")
     public ResponseEntity<User> userDetails(Authentication auth) {
         return ResponseEntity.ok((User) auth.getPrincipal());
-    }
+    }*/
 
     private String generateToken(UserDto userDto) {
         try {
-            List<GrantedAuthority> grantedAuthorities = AuthorityUtils.commaSeparatedStringToAuthorityList("DEFAULT_USER");
+            List<GrantedAuthority> grantedAuthorities ;
+            if(userDto.getIsEmployee())
+            {
+                grantedAuthorities = AuthorityUtils.commaSeparatedStringToAuthorityList("BACKOFFICE");
+            }
+            else {
+                grantedAuthorities = AuthorityUtils.commaSeparatedStringToAuthorityList("CLIENT");
+            }
             String token = Jwts
                     .builder()
                     .setId("JWT")

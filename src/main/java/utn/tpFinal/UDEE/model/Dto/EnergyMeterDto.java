@@ -20,18 +20,27 @@ public class EnergyMeterDto {
     private String password;
     private String residenceStreet;
     private String residenceNumber;
+    private List<MeasureSenderDto> measureSenderDto;
 
     public static EnergyMeterDto from (EnergyMeter energyMeter){
-        return EnergyMeterDto.builder()
+        EnergyMeterDto energyMeterDto = null;
+
+        energyMeterDto = EnergyMeterDto.builder()
                 .serialNumber(energyMeter.getSerialNumber())
                 .brandName(energyMeter.getBrand().getName())
                 .modelName(energyMeter.getMeterModel().getName())
                 .password(energyMeter.getPassword())
-                .residenceStreet(energyMeter.getResidence().getStreet())
-                .residenceNumber(energyMeter.getResidence().getNumber())
                 .build();
-    }
 
+        if(energyMeter.getMeasure() == null) energyMeterDto.setMeasureSenderDto(MeasureSenderDto.from(energyMeter.getMeasure()));
+
+        if(energyMeter.getResidence() == null){
+            energyMeterDto.setResidenceNumber(energyMeter.getResidence().getNumber());
+            energyMeterDto.setResidenceStreet(energyMeter.getResidence().getStreet());
+        }
+        return energyMeterDto;
+    };
+    
     public static List<EnergyMeterDto> from (List<EnergyMeter> listEnergyMeter){
         List<EnergyMeterDto> listDto = new ArrayList<EnergyMeterDto>();
 

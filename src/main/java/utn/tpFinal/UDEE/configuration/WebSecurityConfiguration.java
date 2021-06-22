@@ -18,12 +18,15 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable().authorizeRequests()
-                .antMatchers("/").permitAll()
-                .antMatchers(HttpMethod.POST, "/api/users").permitAll()
+                /*.antMatchers("/api/**").permitAll()
+                .antMatchers("/backoffice/**").hasAuthority("BACKOFFICE")
+                .antMatchers("/client/**").hasAnyAuthority("BACKOFFICE","CLIENT")*/
+                .anyRequest().permitAll(); //authenticated();
+
+                 /*.antMatchers(HttpMethod.POST, "/api/users").permitAll()
                 .antMatchers(HttpMethod.POST,"/api/users/login").permitAll()
                 .antMatchers(HttpMethod.GET,"/api/users").permitAll()
                 .antMatchers(HttpMethod.GET,"/api/users/details").permitAll()
-                .antMatchers(HttpMethod.GET,"/api/measurements").permitAll()
-                .anyRequest().authenticated(); //authenticated();
+                .antMatchers(HttpMethod.GET,"/api/measurements").permitAll()*/
     }
 }

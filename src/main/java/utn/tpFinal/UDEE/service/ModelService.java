@@ -2,13 +2,13 @@ package utn.tpFinal.UDEE.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import utn.tpFinal.UDEE.repository.ModelRepository;
+import utn.tpFinal.UDEE.repository.MeterModelRepository;
 
 @Service
 public class ModelService {
 
-    ModelRepository modelRepository;
+    MeterModelRepository meterModelRepository;
 
     @Autowired
-    public ModelService(ModelRepository modelRepository){ this.modelRepository = modelRepository;}
+    public ModelService(MeterModelRepository meterModelRepository){ this.meterModelRepository = meterModelRepository;}
 }

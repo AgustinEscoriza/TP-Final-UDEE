@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/model")
+@RequestMapping("/backoffice/model")
 public class ModelController {
 
     ModelService modelService;

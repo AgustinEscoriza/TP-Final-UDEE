@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 import utn.tpFinal.UDEE.service.BrandService;
 
 @RestController
-@RequestMapping("/api/brand")
+@RequestMapping("/backoffice/brand")
 public class BrandController {
 
     BrandService brandService;

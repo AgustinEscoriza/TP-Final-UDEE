@@ -28,6 +28,8 @@ public class ResidenceDto {
                 .street(residence.getStreet())
                 .id(residence.getId())
                 .number(residence.getNumber())
+                .postalNumber(residence.getPostalNumber())
+                .feeType(residence.getFeeType())
                 .energyMeter(EnergyMeterDto.from(residence.getEnergyMeter()))
                 .build();
     }

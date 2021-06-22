@@ -1,10 +1,7 @@
 package utn.tpFinal.UDEE.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -27,10 +24,12 @@ public class MeterModel {
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "id_brand",foreignKey = @ForeignKey(name="FK_models_brands"))
+    @JsonIgnore
+    @ToString.Exclude
     private Brand brand;
 
-    @OneToMany(mappedBy = "meterModel",fetch = FetchType.LAZY,
+    @OneToMany(mappedBy = "meterModel",
             cascade = CascadeType.ALL)
-    @JsonIgnore
+    @ToString.Exclude
     private List<EnergyMeter> energyMeters;
 }

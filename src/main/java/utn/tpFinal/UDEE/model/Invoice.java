@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 @AllArgsConstructor
@@ -22,14 +23,14 @@ public class Invoice {
     private Integer id;
 
     //CONSUMPTION
-    private Integer initialConsumption;
-    private Integer finalConsumption;
+    private Integer initialMeasurement;
+    private Integer finalMeasurement;
     private Float totalConsumption;
 
     //DATES
-    private LocalDateTime emissionDate;
-    private LocalDateTime initialReadingDate;
-    private LocalDateTime finalReadingDate;
+    private Date emissionDate;
+    private Date initialReadingDate;
+    private Date finalReadingDate;
 
 
     @Column(columnDefinition = "bool default 0")
@@ -49,6 +50,12 @@ public class Invoice {
     @ManyToOne
     @JoinColumn(name = "energyMeter_serialNumber")
     private EnergyMeter energyMeter;
+
+
+    public float getFinalPayment(){
+        return this.totalConsumption*this.residence.getFeeType().getKwPricePerHour();
+    }
+
 }
 
 // DEBE TENER;

@@ -1,14 +1,12 @@
 package utn.tpFinal.UDEE.model;
 
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 @AllArgsConstructor
@@ -22,7 +20,7 @@ public class Measurement {
     private Integer id;
 
     @NotNull
-    private LocalDateTime dateTime;
+    private Date dateTime;
     @NotNull
     private Float kwH;
     @NotNull
@@ -30,5 +28,6 @@ public class Measurement {
 
     @ManyToOne
     @JoinColumn(name = "id_energy_meter")
+    @ToString.Exclude
     private EnergyMeter energyMeter;
 }
