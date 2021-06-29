@@ -37,13 +37,13 @@ public class ClientService {
         this.measurementRepository = measurementRepository;
     }
 
-    public Page<ClientDto> getAll(Specification<Client> clientSpecification, Integer page, Integer size, List<Sort.Order>orderList) {
+    public Page<ClientResponseDto> getAll(Specification<Client> clientSpecification, Integer page, Integer size, List<Sort.Order>orderList) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(orderList));
 
         Page<Client> clients = clientRepository.findAll(clientSpecification,pageable);
-        Page<ClientDto> clientDtos = Page.empty();
+        Page<ClientResponseDto> clientDtos = Page.empty();
         if(!clients.isEmpty()){
-            clientDtos = clients.map(c->ClientDto.from(c));
+            clientDtos = clients.map(c-> ClientResponseDto.from(c));
         }
         return clientDtos;
     }
@@ -71,7 +71,7 @@ public class ClientService {
         }
     }
 
-    public ClientDto updateClient(Integer idClient,Integer idUser) throws UserNotFoundException, ClientNotFoundException, UserAlreadyHasClientException {
+    public ClientResponseDto updateClient(Integer idClient, Integer idUser) throws UserNotFoundException, ClientNotFoundException, UserAlreadyHasClientException {
         if(clientRepository.existsById(idClient)){
             User user = userRepository.findById(idUser).orElseThrow(()->new UserNotFoundException(this.getClass().getSimpleName(),"updateClient"));
             List<Residence> residence = residenceRepository.findByClientDni(idClient);
@@ -81,71 +81,11 @@ public class ClientService {
             Client client = Client.builder().dni(idClient).user(user).residences(residence).build();
             Client updatedClient = clientRepository.save(client);
 
-            ClientDto dto = ClientDto.from(updatedClient);
+            ClientResponseDto dto = ClientResponseDto.from(updatedClient);
             return dto;
         }else{
             throw new ClientNotFoundException(this.getClass().getSimpleName(),"updateClient");
         }
-    }
-
-    public Page<InvoiceDto> getClientUnpaidInvoices(Integer idClient,Integer page,Integer size, List<Sort.Order> orders) throws ClientNotFoundException {
-        Client c = clientRepository.findById(idClient).orElseThrow(()->new ClientNotFoundException(this.getClass().getSimpleName(),"getClientUnpaidInvoices"));
-        Pageable pageable = PageRequest.of(page,size,Sort.by(orders));
-                                                                                    //Elegir entre loop o query con array de Ids
-        List<Integer> residenceIds = new ArrayList<Integer>();
-
-        for(Residence residence : c.getResidences()){
-            residenceIds.add(residence.getId());
-        }
-
-        Page<Invoice> invoices = invoiceRepository.findByPaidAndResidenceIdIn(false,residenceIds,pageable);
-
-        Page<InvoiceDto> invoiceDtos = Page.empty();
-        if(!invoices.isEmpty()){
-            invoiceDtos = invoices.map(i->InvoiceDto.from(i));
-        }
-        return invoiceDtos;
-    }
-
-    public ConsumptionDto getConsumtionBetweenDates(Integer dniClient, Date from, Date to) throws ClientNotFoundException, DatesBadRequestException {
-        if(from.after(to)){
-            throw new DatesBadRequestException(this.getClass().getSimpleName(),"getConsumtionBetweenDates");
-        }
-        if(!clientRepository.existsById(dniClient)){
-            throw new ClientNotFoundException(this.getClass().getSimpleName(),"getConsumptionBetweenDates");
-        }
-
-        List<Invoice> invoices = invoiceRepository.findByClientDniAndEmissionDateBetween(dniClient,from,to);
-
-        ConsumptionDto consumptionDto = ConsumptionDto.builder().dni(dniClient).totalConsumption(0f).build();
-        if(!invoices.isEmpty()){
-            consumptionDto.setInvoices(InvoiceDto.from(invoices));
-        }
-        for(Invoice i: invoices){
-            consumptionDto.setTotalConsumption((consumptionDto.getTotalConsumption()+ i.getTotalConsumption()));
-        }
-
-        return consumptionDto;
-    }
-
-    public Page<MeasureResponseDto> getClientMeasurementsByDates(Integer idClient,Date from,Date to,Integer page, Integer size, List<Sort.Order> orders) throws DatesBadRequestException, ClientNotFoundException {
-        if(from.after(to)){
-            throw new DatesBadRequestException(this.getClass().getSimpleName(),"getClientmeasurementsByDates");
-        }
-        Client c = clientRepository.findById(idClient).orElseThrow(()->new ClientNotFoundException(this.getClass().getSimpleName(),"getClientMeasurementsByDates"));
-        Pageable pageable = PageRequest.of(page, size, Sort.by(orders));
-
-        List<Integer>residencesIds = new ArrayList<Integer>();
-        for(Residence r: c.getResidences())
-            residencesIds.add(r.getId());
-        Page<Measurement> measurements = measurementRepository.findByResidenceIdInAndDateBetween(residencesIds,from,to,pageable);
-
-        Page<MeasureResponseDto> measureDtos = Page.empty(pageable);
-
-        if (!measurements.isEmpty())
-            measureDtos = measurements.map(m -> MeasureResponseDto.from(m));
-
-        return measureDtos;
     }
 
     public List<Top10Clients> getTop10CostumersByDate(Date from, Date to){

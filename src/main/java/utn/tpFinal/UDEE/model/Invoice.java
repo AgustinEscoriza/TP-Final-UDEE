@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.Date;
 
@@ -23,18 +24,22 @@ public class Invoice {
     private Integer id;
 
     //CONSUMPTION
-    private Integer initialMeasurement;
-    private Integer finalMeasurement;
+    private Float initialMeasurement;
+    private Float finalMeasurement;
+    @NotNull
     private Float totalConsumption;
 
     //DATES
+    @NotNull
     private Date emissionDate;
     private Date initialReadingDate;
     private Date finalReadingDate;
 
+    @NotNull
     private float finalPrice;
 
     @Column(columnDefinition = "bool default 0")
+    @NotNull
     private Boolean paid;
 
     @JsonIgnore

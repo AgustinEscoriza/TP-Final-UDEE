@@ -13,26 +13,26 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ClientDto {
+public class ClientResponseDto {
     private Integer dni;
-    private List<InvoiceDto> invoices;
+    private List<InvoiceResponseDto> invoices;
     private UserDto user;
-    private List<ResidenceDto> residences;
+    private List<ResidenceResponseDto> residences;
 
 
-    public static ClientDto from(Client client){
-        return ClientDto.builder()
+    public static ClientResponseDto from(Client client){
+        return ClientResponseDto.builder()
                 .dni(client.getDni())
                 .user(UserDto.from(client.getUser()))
-                .residences(ResidenceDto.from(client.getResidences()))
+                .residences(ResidenceResponseDto.from(client.getResidences()))
                 .build();
     }
 
-    public static List<ClientDto> from (List<Client> clientList){
-        List<ClientDto> listDto = new ArrayList<ClientDto>();
+    public static List<ClientResponseDto> from (List<Client> clientList){
+        List<ClientResponseDto> listDto = new ArrayList<ClientResponseDto>();
 
         for(Client c : clientList)
-            listDto.add(ClientDto.from(c));
+            listDto.add(ClientResponseDto.from(c));
 
         return listDto;
     }

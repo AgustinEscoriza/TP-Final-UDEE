@@ -15,6 +15,8 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import utn.tpFinal.UDEE.exceptions.*;
 import utn.tpFinal.UDEE.model.Dto.*;
 import utn.tpFinal.UDEE.model.Residence;
+import utn.tpFinal.UDEE.service.InvoiceService;
+import utn.tpFinal.UDEE.service.MeasurementService;
 import utn.tpFinal.UDEE.service.ResidenceService;
 
 import java.net.URI;
@@ -26,10 +28,14 @@ import java.util.List;
 public class ResidenceController {
 
     ResidenceService residenceService;
+    InvoiceService invoiceService;
+    MeasurementService measurementService;
 
     @Autowired
-    public ResidenceController(ResidenceService residenceService){
+    public ResidenceController(ResidenceService residenceService,InvoiceService invoiceService,MeasurementService measurementService){
         this.residenceService = residenceService;
+        this.invoiceService = invoiceService;
+        this.measurementService = measurementService;
     }
 
 
@@ -49,21 +55,21 @@ public class ResidenceController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ResidenceDto>> getAll(@RequestParam(defaultValue = "0") Integer page,
-                                                     @RequestParam(defaultValue = "5") Integer size,
-                                                     @RequestParam(defaultValue = "id") String sortField1,
-                                                     @RequestParam(defaultValue = "street") String sortField2,
-                                                     @And({  @Spec(path = "id", spec = Equal.class),
+    public ResponseEntity<List<ResidenceResponseDto>> getAll(@RequestParam(defaultValue = "0") Integer page,
+                                                             @RequestParam(defaultValue = "5") Integer size,
+                                                             @RequestParam(defaultValue = "id") String sortField1,
+                                                             @RequestParam(defaultValue = "street") String sortField2,
+                                                             @And({  @Spec(path = "id", spec = Equal.class),
                                                              @Spec(path = "street", spec = LikeIgnoreCase.class),
                                                              @Spec(path = "number", spec = LikeIgnoreCase.class)
                                                      }) Specification<Residence> residenceSpecification){
         List<Sort.Order> orders = new ArrayList<>();
         orders.add(new Sort.Order(Sort.Direction.ASC, sortField1));
         orders.add(new Sort.Order(Sort.Direction.ASC, sortField2));
-        Page<ResidenceDto> residenceDto = residenceService.getAll(residenceSpecification,page,size,orders);
+        Page<ResidenceResponseDto> residenceDto = residenceService.getAll(residenceSpecification,page,size,orders);
 
         if(residenceDto.isEmpty()){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }else{
             return ResponseEntity.status(HttpStatus.OK)
                     .header("X-Total-Elements", Long.toString(residenceDto.getTotalElements()))
@@ -77,28 +83,34 @@ public class ResidenceController {
 
     @DeleteMapping("/{idResidence}")
     public ResponseEntity deleteResidence(@PathVariable Integer idResidence) throws ResidenceNotFoundException{
-        residenceService.removeResidence(idResidence);
+        Boolean deleted = false;
+        deleted = residenceService.removeResidence(idResidence);
+
+        if(!deleted){
+            return ResponseEntity.notFound().build();
+        }
+
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{idResidence}")
-    public ResponseEntity<ResidenceDto> updateResidence(@PathVariable Integer idResidence,@RequestBody ResidencePutDto residencePutDto) throws ResidenceNotFoundException, ClientNotFoundException, MeterNotFoundException, FeeTypeNotFoundException {
+    public ResponseEntity<ResidenceResponseDto> updateResidence(@PathVariable Integer idResidence, @RequestBody ResidencePutDto residencePutDto) throws ResidenceNotFoundException, ClientNotFoundException, MeterNotFoundException, FeeTypeNotFoundException {
         residenceService.updateResidence(idResidence,residencePutDto);
         return ResponseEntity.ok().build();
     }
 
     //CONSULTA DE FACTURAS IMPAGAS
     @GetMapping("/{idResidence}/invoices/unpaid")
-    public ResponseEntity<List<InvoiceDto>>getResidenceUnpaidInvoices(@PathVariable Integer idResidence,
-                                                                   @RequestParam(defaultValue = "0") Integer page,
-                                                                   @RequestParam(defaultValue = "5") Integer size,
-                                                                   @RequestParam(defaultValue = "id") String sortField1,
-                                                                   @RequestParam(defaultValue = "emissionDate") String sortField2) throws ResidenceNotFoundException{
+    public ResponseEntity<List<InvoiceResponseDto>>getResidenceUnpaidInvoices(@PathVariable Integer idResidence,
+                                                                              @RequestParam(defaultValue = "0") Integer page,
+                                                                              @RequestParam(defaultValue = "5") Integer size,
+                                                                              @RequestParam(defaultValue = "id") String sortField1,
+                                                                              @RequestParam(defaultValue = "emissionDate") String sortField2) throws ResidenceNotFoundException{
         List<Sort.Order> orders = new ArrayList<>();
         orders.add(new Sort.Order(Sort.Direction.ASC, sortField1));
         orders.add(new Sort.Order(Sort.Direction.ASC, sortField2));
 
-        Page<InvoiceDto> invoiceDtos = residenceService.getUnpaidInvoices(idResidence,page,size,orders);
+        Page<InvoiceResponseDto> invoiceDtos = invoiceService.getUnpaidInvoices(idResidence,page,size,orders);
         if(invoiceDtos.isEmpty()) {
             return ResponseEntity.noContent().build();
         }else{
@@ -122,7 +134,7 @@ public class ResidenceController {
         orders.add(new Sort.Order(Sort.Direction.ASC, sortField1));
         orders.add(new Sort.Order(Sort.Direction.ASC, sortField2));
 
-        Page<MeasureResponseDto> measures = residenceService.getResidenceMeasuresBetweenDates(idResidence, datesFromAndToDto, page, size, orders);
+        Page<MeasureResponseDto> measures = measurementService.getResidenceMeasuresBetweenDates(idResidence, datesFromAndToDto, page, size, orders);
 
         if(measures.isEmpty()){
             return ResponseEntity.noContent().build();

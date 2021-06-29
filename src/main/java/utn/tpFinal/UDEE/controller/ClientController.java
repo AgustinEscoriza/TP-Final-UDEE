@@ -3,12 +3,10 @@ package utn.tpFinal.UDEE.controller;
 import net.kaczmarzyk.spring.data.jpa.domain.Equal;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.And;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,12 +18,11 @@ import utn.tpFinal.UDEE.model.Client;
 import utn.tpFinal.UDEE.model.Dto.*;
 import utn.tpFinal.UDEE.model.proyection.Top10Clients;
 import utn.tpFinal.UDEE.service.ClientService;
+import utn.tpFinal.UDEE.service.InvoiceService;
+import utn.tpFinal.UDEE.service.MeasurementService;
 
-import javax.mail.AuthenticationFailedException;
-import javax.persistence.criteria.Order;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -33,10 +30,14 @@ import java.util.List;
 public class ClientController { //no hay delete por idCliente porque es en cascada cuando se borre usuario
 
     ClientService clientService;
+    MeasurementService measurementService;
+    InvoiceService invoiceService;
 
     @Autowired
-    public ClientController(ClientService clientService){
+    public ClientController(ClientService clientService,MeasurementService measurementService,InvoiceService invoiceService){
         this.clientService = clientService;
+        this.measurementService = measurementService;
+        this.invoiceService = invoiceService;
     }
 
     public Boolean checkEmployeeOrClientWithCorrectId(Authentication authentication, Integer id){
@@ -48,15 +49,15 @@ public class ClientController { //no hay delete por idCliente porque es en casca
 
     @PreAuthorize(value= "hasAuthority('BACKOFFICE')")
     @GetMapping("/clients")
-    public ResponseEntity<List<ClientDto>> getAll(@RequestParam(defaultValue = "0") Integer page,
-                                               @RequestParam(defaultValue = "5") Integer size,
-                                               @RequestParam(defaultValue = "dni") String sortField1,
-                                               @And({
+    public ResponseEntity<List<ClientResponseDto>> getAll(@RequestParam(defaultValue = "0") Integer page,
+                                                          @RequestParam(defaultValue = "5") Integer size,
+                                                          @RequestParam(defaultValue = "dni") String sortField1,
+                                                          @And({
                                                        @Spec(path = "dni", spec = Equal.class)
                                                }) Specification<Client> clientSpecification){
         List<Sort.Order> orders =new ArrayList<>();
         orders.add(new Sort.Order(Sort.Direction.ASC, sortField1));
-        Page<ClientDto> clientPage = clientService.getAll(clientSpecification,page,size,orders);
+        Page<ClientResponseDto> clientPage = clientService.getAll(clientSpecification,page,size,orders);
 
         if(clientPage.isEmpty()){
             return ResponseEntity.noContent().build();
@@ -70,6 +71,7 @@ public class ClientController { //no hay delete por idCliente porque es en casca
         }
     }
 
+    @PreAuthorize(value= "hasAuthority('BACKOFFICE')")
     @PostMapping("/clients")
     public ResponseEntity add(@RequestBody ClientAddDto clientAddDto) throws UserNotFoundException, ClientNotFoundException, UserAlreadyHasClientException, ClientAlreadyExistsException, ClientCannotBeAnEmployeeExcecption {  //Clientes se crean sin residencia asignada, se agregar por PUT o del otro lado
 
@@ -86,21 +88,24 @@ public class ClientController { //no hay delete por idCliente porque es en casca
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    @PutMapping("/clients/{dniClient}")                //Cambio de user?? no se si deberia estar esto
-    public ResponseEntity <ClientDto> update(Authentication authentication,@PathVariable Integer dniClient, @RequestBody Integer idUser) throws UserNotFoundException, ClientNotFoundException, UserAlreadyHasClientException {
+
+    @PutMapping("/clients/{dniClient}")                //Cambio de user?? no se si deberia estar esto, claramente cambiar DNI no es.
+    public ResponseEntity <ClientResponseDto> update(Authentication authentication, @PathVariable Integer dniClient, @RequestBody ClientPutDto clientPutDto) throws UserNotFoundException, ClientNotFoundException, UserAlreadyHasClientException {
         if(!checkEmployeeOrClientWithCorrectId(authentication,dniClient)){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        ClientDto clientDto = clientService.updateClient(dniClient,idUser);
-        return ResponseEntity.ok().body(clientDto);
+        ClientResponseDto clientResponseDto = clientService.updateClient(dniClient,clientPutDto.getIdUser());
+        return ResponseEntity.ok().body(clientResponseDto);
     }
 
+    //DELETE?? No deberia porque se deberian borrar residencias/Meters/Invoices o lo que sea y el cliente dentro de la base de datos, pero vacio, a lo sumo un cascade de usuario pero no de Cliente
+    //Cliente
     @GetMapping("/clients/{dniClient}/invoices/unpaid")
-    public ResponseEntity<List<InvoiceDto>> getUnpaidByClient(Authentication authentication,@PathVariable Integer dniClient,
-                                                              @RequestParam(defaultValue = "0") Integer page,
-                                                              @RequestParam(defaultValue = "5") Integer size,
-                                                              @RequestParam(defaultValue = "id") String sortField1,
-                                                              @RequestParam(defaultValue = "emissionDate") String sortField2) throws ClientNotFoundException {
+    public ResponseEntity<List<InvoiceResponseDto>> getUnpaidByClient(Authentication authentication, @PathVariable Integer dniClient,
+                                                                      @RequestParam(defaultValue = "0") Integer page,
+                                                                      @RequestParam(defaultValue = "5") Integer size,
+                                                                      @RequestParam(defaultValue = "id") String sortField1,
+                                                                      @RequestParam(defaultValue = "emissionDate") String sortField2) throws ClientNotFoundException {
 
         List<Sort.Order> orders = new ArrayList<>();
         orders.add(new Sort.Order(Sort.Direction.ASC, sortField1));
@@ -108,7 +113,7 @@ public class ClientController { //no hay delete por idCliente porque es en casca
         if(!checkEmployeeOrClientWithCorrectId(authentication,dniClient)){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        Page<InvoiceDto> invoiceDtos = clientService.getClientUnpaidInvoices(dniClient,page,size,orders);
+        Page<InvoiceResponseDto> invoiceDtos = invoiceService.getClientUnpaidInvoices(dniClient,page,size,orders);
         if(invoiceDtos.isEmpty()){
             return ResponseEntity.noContent().build();
         }
@@ -126,7 +131,7 @@ public class ClientController { //no hay delete por idCliente porque es en casca
     public ResponseEntity<ConsumptionDto> getClientConsumptionBetweenDates(Authentication authentication, @PathVariable Integer dniClient,
                                                            @RequestBody DatesFromAndToDto datesFromAndToDto) throws DatesBadRequestException, ClientNotFoundException {
         if(checkEmployeeOrClientWithCorrectId(authentication,dniClient)){
-            ConsumptionDto consumptionDto = clientService.getConsumtionBetweenDates(dniClient,datesFromAndToDto.getFrom(),datesFromAndToDto.getTo());
+            ConsumptionDto consumptionDto = invoiceService.getConsumtionBetweenDates(dniClient,datesFromAndToDto.getFrom(),datesFromAndToDto.getTo());
             if(consumptionDto == null){
                 return ResponseEntity.noContent().build();
             }
@@ -150,7 +155,7 @@ public class ClientController { //no hay delete por idCliente porque es en casca
         if(!checkEmployeeOrClientWithCorrectId(authentication,dniClient)){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        Page<MeasureResponseDto> measureResponseDtos = clientService.getClientMeasurementsByDates(dniClient,datesFromAndToDto.getFrom(),datesFromAndToDto.getTo(),page,size,orders);
+        Page<MeasureResponseDto> measureResponseDtos = measurementService.getClientMeasurementsByDates(dniClient,datesFromAndToDto.getFrom(),datesFromAndToDto.getTo(),page,size,orders);
 
         if(measureResponseDtos.isEmpty()){
             return ResponseEntity.noContent().build();
@@ -170,7 +175,7 @@ public class ClientController { //no hay delete por idCliente porque es en casca
     public ResponseEntity<List<Top10Clients>> getTop10(@RequestBody DatesFromAndToDto datesFromAndToDto) {
         List<Top10Clients> top10ConsumerByDates = clientService.getTop10CostumersByDate(datesFromAndToDto.getFrom(), datesFromAndToDto.getTo());
         if(top10ConsumerByDates.isEmpty()){
-            return ResponseEntity.ok().build();
+            return ResponseEntity.noContent().build();
         }
         return ResponseEntity.status(HttpStatus.OK).body(top10ConsumerByDates);
     }

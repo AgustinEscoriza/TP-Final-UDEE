@@ -8,7 +8,6 @@ import utn.tpFinal.UDEE.model.Invoice;
 import utn.tpFinal.UDEE.model.Residence;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 
@@ -16,11 +15,11 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class InvoiceDto {
+public class InvoiceResponseDto {
     private Integer id;
     private Boolean paid;
-    private Integer initialMeasurement;
-    private Integer finalMeasurement;
+    private Float initialMeasurement;
+    private Float finalMeasurement;
     private Float totalConsumption;
     private String emissionDate;
     private String initialReadingDate;
@@ -30,11 +29,11 @@ public class InvoiceDto {
 
 
 
-    public static InvoiceDto from (Invoice invoice){
+    public static InvoiceResponseDto from (Invoice invoice){
         Residence residence = invoice.getResidence();
         String address = residence.getStreet() + ' ' + residence.getNumber();
 
-        return InvoiceDto.builder()
+        return InvoiceResponseDto.builder()
                 .id(invoice.getId())
                 .paid(invoice.getPaid())
                 .initialMeasurement(invoice.getInitialMeasurement())
@@ -46,11 +45,11 @@ public class InvoiceDto {
                 .adress(address)
                 .build();
     }
-    public static List<InvoiceDto> from (List<Invoice>invoiceList){
-        List<InvoiceDto> invoiceDtos = new ArrayList<InvoiceDto>();
+    public static List<InvoiceResponseDto> from (List<Invoice>invoiceList){
+        List<InvoiceResponseDto> invoiceResponseDtos = new ArrayList<InvoiceResponseDto>();
         for(Invoice i: invoiceList){
-            invoiceDtos.add(InvoiceDto.from(i));
+            invoiceResponseDtos.add(InvoiceResponseDto.from(i));
         }
-        return invoiceDtos;
+        return invoiceResponseDtos;
     }
 }

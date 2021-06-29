@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import utn.tpFinal.UDEE.model.EnergyMeter;
 import utn.tpFinal.UDEE.model.FeeType;
 import utn.tpFinal.UDEE.model.Residence;
 
@@ -15,32 +14,32 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ResidenceDto {
+public class ResidenceResponseDto {
     private Integer id;
     private String street;
     private String number;
     private Integer postalNumber;
     private FeeType feeType;
-    private List<InvoiceDto> invoices;
-    private EnergyMeterDto energyMeter;
+    private List<InvoiceResponseDto> invoices;
+    private EnergyMeterResponseDto energyMeter;
 
-    public static ResidenceDto from(Residence residence){
-        return ResidenceDto.builder()
+    public static ResidenceResponseDto from(Residence residence){
+        return ResidenceResponseDto.builder()
                 .street(residence.getStreet())
                 .id(residence.getId())
-                .invoices(InvoiceDto.from(residence.getInvoices()))
+                .invoices(InvoiceResponseDto.from(residence.getInvoices()))
                 .number(residence.getNumber())
                 .postalNumber(residence.getPostalNumber())
                 .feeType(FeeType.builder().id(residence.getFeeType().getId()).kwPricePerHour(residence.getFeeType().getKwPricePerHour()).detail(residence.getFeeType().getDetail()).build())
-                .energyMeter(EnergyMeterDto.from(residence.getEnergyMeter()))
+                .energyMeter(EnergyMeterResponseDto.from(residence.getEnergyMeter()))
                 .build();
     }
 
-    public static List<ResidenceDto> from (List<Residence> residencesList){
-        List<ResidenceDto> listDto = new ArrayList<ResidenceDto>();
+    public static List<ResidenceResponseDto> from (List<Residence> residencesList){
+        List<ResidenceResponseDto> listDto = new ArrayList<ResidenceResponseDto>();
 
         for(Residence r : residencesList)
-            listDto.add(ResidenceDto.from(r));
+            listDto.add(ResidenceResponseDto.from(r));
 
         return listDto;
     }

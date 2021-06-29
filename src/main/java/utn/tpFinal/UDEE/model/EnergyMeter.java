@@ -37,7 +37,7 @@ public class EnergyMeter {
     private Brand brand;
 
     @OneToOne(mappedBy = "energyMeter")
-    private Residence residence;
+    private Residence residences;
 
     @OneToMany(mappedBy = "energyMeter",fetch = FetchType.EAGER,
             cascade = CascadeType.ALL)

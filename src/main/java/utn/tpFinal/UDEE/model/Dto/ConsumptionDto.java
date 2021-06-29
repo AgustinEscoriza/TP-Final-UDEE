@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
 import java.util.List;
 
 @Data
@@ -16,5 +15,5 @@ public class ConsumptionDto {
 
     private Float totalConsumption;
     private Integer dni;
-    private List<InvoiceDto> invoices;
+    private List<InvoiceResponseDto> invoices;
 }

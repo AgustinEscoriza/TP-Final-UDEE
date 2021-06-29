@@ -37,9 +37,7 @@ import java.util.stream.Collectors;
 public class UserController {
 
     private UserService userService;
-    @Autowired
     private final ObjectMapper objectMapper;
-    @Autowired
     private final ModelMapper modelMapper;
 
     @Autowired
@@ -86,7 +84,7 @@ public class UserController {
         return ResponseEntity.ok((User) auth.getPrincipal());
     }*/
 
-    private String generateToken(UserDto userDto) {
+    public String generateToken(UserDto userDto) {
         try {
             List<GrantedAuthority> grantedAuthorities ;
             if(userDto.getIsEmployee())

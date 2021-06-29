@@ -5,11 +5,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import utn.tpFinal.UDEE.exceptions.FeeTypeNotFoundException;
-import utn.tpFinal.UDEE.model.Dto.FeeTypeDto;
-import utn.tpFinal.UDEE.model.Dto.FeeTypePutDto;
-import utn.tpFinal.UDEE.model.EnergyMeter;
+import utn.tpFinal.UDEE.model.Dto.FeeTypeResponseDto;
+import utn.tpFinal.UDEE.model.Dto.FeeTypeRequestDto;
 import utn.tpFinal.UDEE.model.FeeType;
 import utn.tpFinal.UDEE.repository.FeeTypeRepository;
 
@@ -25,24 +25,25 @@ public class FeeTypeService {
         this.feeTypeRepository = feeTypeRepository;
     }
 
-    public Page<FeeType> getAll(Integer page, Integer size, List<Sort.Order> orderList){
+    public Page<FeeTypeResponseDto> getAllFees(Specification<FeeType> feeTypeSpecification, Integer page, Integer size, List<Sort.Order> orderList){
         Pageable pageable = PageRequest.of(page, size, Sort.by(orderList));
-        Page<FeeType>feeTypes = feeTypeRepository.findAll(pageable);
-        Page<FeeType> returnFeeTypes = Page.empty();
+        Page<FeeType>feeTypes = feeTypeRepository.findAll(feeTypeSpecification,pageable);
+        Page<FeeTypeResponseDto> feeTypeResponseDtoPage = Page.empty();
         if(!feeTypes.isEmpty()){
-
+            feeTypeResponseDtoPage = feeTypes.map(f->FeeTypeResponseDto.from(f));
         }
-        return feeTypes;
+        return feeTypeResponseDtoPage;
     }
 
-    public Integer add(FeeType feeType){
-        FeeType addedFeeType = feeTypeRepository.save(feeType);
+    public Integer add(FeeTypeRequestDto feeType){
+        FeeType toAddType = FeeType.builder().detail(feeType.getDetail()).kwPricePerHour(feeType.getKwPricePerHour()).build();
+        FeeType addedFeeType = feeTypeRepository.save(toAddType);
         return addedFeeType.getId();
     }
 
-    public FeeTypeDto getById(Integer idFeeType) throws FeeTypeNotFoundException {
+    public FeeTypeResponseDto getById(Integer idFeeType) throws FeeTypeNotFoundException {
         FeeType feeType = feeTypeRepository.findById(idFeeType).orElseThrow(()-> new FeeTypeNotFoundException(this.getClass().getSimpleName(),"getById"));
-        FeeTypeDto dto = FeeTypeDto.builder().id(feeType.getId()).kwPricePerHour(feeType.getKwPricePerHour()).detail(feeType.getDetail()).build();
+        FeeTypeResponseDto dto = FeeTypeResponseDto.builder().id(feeType.getId()).kwPricePerHour(feeType.getKwPricePerHour()).detail(feeType.getDetail()).build();
         return dto;
     }
 
@@ -59,14 +60,14 @@ public class FeeTypeService {
         return deleted;
     }
 
-    public FeeTypeDto update(Integer idFeeType, FeeTypePutDto feeType) throws FeeTypeNotFoundException {
+    public FeeTypeResponseDto update(Integer idFeeType, FeeTypeRequestDto feeType) throws FeeTypeNotFoundException {
         if(!feeTypeRepository.existsById(idFeeType)){
             throw new FeeTypeNotFoundException(this.getClass().getSimpleName(),"update");
         }
         FeeType newFeeType = FeeType.builder().id(idFeeType).detail(feeType.getDetail()).kwPricePerHour(feeType.getKwPricePerHour()).build();
 
         FeeType updatedFeeType = feeTypeRepository.save(newFeeType);
-        FeeTypeDto dto = FeeTypeDto.builder().id(updatedFeeType.getId()).detail(feeType.getDetail()).kwPricePerHour(feeType.getKwPricePerHour()).build();
+        FeeTypeResponseDto dto = FeeTypeResponseDto.builder().id(updatedFeeType.getId()).detail(feeType.getDetail()).kwPricePerHour(feeType.getKwPricePerHour()).build();
         return dto;
     }
 }

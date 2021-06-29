@@ -9,8 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class FeeTypeDto {
-    private Integer id;
+public class FeeTypeRequestDto {
     private String detail;
     private Integer kwPricePerHour;
 }

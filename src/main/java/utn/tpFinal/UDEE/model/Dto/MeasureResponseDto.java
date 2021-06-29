@@ -14,7 +14,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class MeasureResponseDto {
+public class  MeasureResponseDto {
 
     private Integer id;
     private String dateTime;

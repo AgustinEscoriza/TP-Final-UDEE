@@ -13,7 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class EnergyMeterDto {
+public class EnergyMeterResponseDto {
     private Integer serialNumber;
     private String brandName;
     private String modelName;
@@ -22,30 +22,30 @@ public class EnergyMeterDto {
     private String residenceNumber;
     private List<MeasureResponseDto> measureResponseDto;
 
-    public static EnergyMeterDto from (EnergyMeter energyMeter){
-        EnergyMeterDto energyMeterDto = null;
+    public static EnergyMeterResponseDto from (EnergyMeter energyMeter){
+        EnergyMeterResponseDto energyMeterResponseDto = null;
 
-        energyMeterDto = EnergyMeterDto.builder()
+        energyMeterResponseDto = EnergyMeterResponseDto.builder()
                 .serialNumber(energyMeter.getSerialNumber())
                 .brandName(energyMeter.getBrand().getName())
                 .modelName(energyMeter.getMeterModel().getName())
                 .password(energyMeter.getPassword())
                 .build();
 
-        if(energyMeter.getMeasure() != null) energyMeterDto.setMeasureResponseDto(MeasureResponseDto.from(energyMeter.getMeasure()));
+        if(energyMeter.getMeasure() != null) energyMeterResponseDto.setMeasureResponseDto(MeasureResponseDto.from(energyMeter.getMeasure()));
 
-        if(energyMeter.getResidence() != null){
-            energyMeterDto.setResidenceNumber(energyMeter.getResidence().getNumber());
-            energyMeterDto.setResidenceStreet(energyMeter.getResidence().getStreet());
+        if(energyMeter.getResidences() != null){
+            energyMeterResponseDto.setResidenceNumber(energyMeter.getResidences().getNumber());
+            energyMeterResponseDto.setResidenceStreet(energyMeter.getResidences().getStreet());
         }
-        return energyMeterDto;
+        return energyMeterResponseDto;
     };
     
-    public static List<EnergyMeterDto> from (List<EnergyMeter> listEnergyMeter){
-        List<EnergyMeterDto> listDto = new ArrayList<EnergyMeterDto>();
+    public static List<EnergyMeterResponseDto> from (List<EnergyMeter> listEnergyMeter){
+        List<EnergyMeterResponseDto> listDto = new ArrayList<EnergyMeterResponseDto>();
 
         for(EnergyMeter e : listEnergyMeter)
-            listDto.add(EnergyMeterDto.from(e));
+            listDto.add(EnergyMeterResponseDto.from(e));
 
         return listDto;
     }

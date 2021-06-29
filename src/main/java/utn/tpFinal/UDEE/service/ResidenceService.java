@@ -38,12 +38,12 @@ public class ResidenceService {
         this.feeTypeRepository = feeTypeRepository;
     }
 
-    public Page<ResidenceDto> getAll(Specification<Residence> residenceSpecification, Integer page,Integer size,List<Sort.Order> orders){
+    public Page<ResidenceResponseDto> getAll(Specification<Residence> residenceSpecification, Integer page, Integer size, List<Sort.Order> orders){
         Pageable pageable = PageRequest.of(page, size, Sort.by(orders));
         Page<Residence>residences = residenceRepository.findAll(residenceSpecification,pageable);
-        Page<ResidenceDto> residenceDtos = Page.empty();
+        Page<ResidenceResponseDto> residenceDtos = Page.empty();
         if(!residences.isEmpty()){
-            residenceDtos = residences.map(r-> ResidenceDto.from(r));
+            residenceDtos = residences.map(r-> ResidenceResponseDto.from(r));
         }
         return residenceDtos;
     }
@@ -52,7 +52,7 @@ public class ResidenceService {
         EnergyMeter energyMeter = energyMeterRepository.findById(residenceAddDto.getEnergyMeterSerialNumber()).orElseThrow(()-> new MeterNotFoundException(this.getClass().getSimpleName(),"addResidence"));
         FeeType feeType = feeTypeRepository.findById(residenceAddDto.getFee_value()).orElseThrow(()-> new FeeTypeNotFoundException(this.getClass().getSimpleName(),"addResidence"));
 
-        if(!isNull(energyMeter.getResidence())){
+        if(!isNull(energyMeter.getResidences())){
             throw new MeterAlreadyHasResidenceException(this.getClass().getSimpleName(),"addResidence");
         }
         Residence residence = Residence.builder()
@@ -81,7 +81,7 @@ public class ResidenceService {
         return deleted;
     }
 
-    public ResidenceDto updateResidence(Integer residenceId, ResidencePutDto residencePutDto) throws ClientNotFoundException, ResidenceNotFoundException, MeterNotFoundException, FeeTypeNotFoundException {
+    public ResidenceResponseDto updateResidence(Integer residenceId, ResidencePutDto residencePutDto) throws ClientNotFoundException, ResidenceNotFoundException, MeterNotFoundException, FeeTypeNotFoundException {
         Residence previousResidence = residenceRepository.findById(residenceId).orElseThrow(()-> new ResidenceNotFoundException(this.getClass().getSimpleName(),"updateResidence"));
         Client client = clientRepository.findById(residencePutDto.getIdClient()).orElseThrow(()-> new ClientNotFoundException(this.getClass().getSimpleName(), "updateResidence"));
         FeeType feeType = feeTypeRepository.findById(residencePutDto.getFee_value()).orElseThrow(()-> new FeeTypeNotFoundException(this.getClass().getSimpleName(),"addResidence"));
@@ -98,38 +98,17 @@ public class ResidenceService {
                 .build();
 
         Residence updatedResidence = residenceRepository.save(residence);
-        ResidenceDto residenceDto = ResidenceDto.from(updatedResidence);
+        ResidenceResponseDto residenceResponseDto = ResidenceResponseDto.from(updatedResidence);
 
-        return residenceDto;
+        return residenceResponseDto;
     }
-
-    public Page<InvoiceDto> getUnpaidInvoices(Integer residenceId, Integer page,Integer size,List<Sort.Order> orders) throws ResidenceNotFoundException {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(orders));
-
-        if(!residenceRepository.existsById(residenceId)){
-            throw new ResidenceNotFoundException(this.getClass().getSimpleName(),"getUnpaidInvoices");
+    public ResidenceResponseDto getResidenceByMeterSerialNumber(Integer serialNumber)throws MeterNotFoundException, ResidenceNotFoundException {
+        EnergyMeter energyMeter = energyMeterRepository.findById(serialNumber).orElseThrow(()-> new MeterNotFoundException(this.getClass().getSimpleName(),"getResidenceByMeterSerialNumber"));
+        Residence residence = new Residence();
+        if(energyMeter.getResidences() != null){
+            return ResidenceResponseDto.from(energyMeter.getResidences());
+        }else{
+            throw new ResidenceNotFoundException(this.getClass().getSimpleName(),"getResidenceByMeterSerialNumber");
         }
-
-        Page<Invoice> invoices = invoiceRepository.findByPaidAndResidenceId(false,residenceId,pageable);
-
-
-        Page<InvoiceDto> invoiceDtos = Page.empty();
-        if(!invoices.isEmpty()){
-            invoiceDtos = invoices.map(i->InvoiceDto.from(i));
-        }
-
-        return invoiceDtos;
-    }
-
-    public Page<MeasureResponseDto> getResidenceMeasuresBetweenDates(Integer idResidence, DatesFromAndToDto requestDto, Integer page, Integer size, List<Sort.Order> orders){
-        Pageable pageable = PageRequest.of(page, size, Sort.by(orders));
-        Page<Measurement> measurements = measurementRepository.findByResidenceIdAndDateBetween(idResidence, requestDto.getFrom(),requestDto.getTo(),pageable);
-
-
-        Page<MeasureResponseDto> measurementDtos = Page.empty();
-        if(!measurements.isEmpty()){
-            measurementDtos = measurements.map(m-> MeasureResponseDto.from(m));
-        }
-        return measurementDtos;
     }
 }

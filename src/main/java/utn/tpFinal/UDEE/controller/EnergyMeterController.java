@@ -1,7 +1,6 @@
 package utn.tpFinal.UDEE.controller;
 
 import net.kaczmarzyk.spring.data.jpa.domain.Equal;
-import net.kaczmarzyk.spring.data.jpa.domain.IsNull;
 import net.kaczmarzyk.spring.data.jpa.domain.LikeIgnoreCase;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.And;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
@@ -15,15 +14,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import utn.tpFinal.UDEE.exceptions.*;
 import utn.tpFinal.UDEE.model.Dto.EnergyMeterAddDto;
-import utn.tpFinal.UDEE.model.Dto.EnergyMeterDto;
+import utn.tpFinal.UDEE.model.Dto.EnergyMeterResponseDto;
 import utn.tpFinal.UDEE.model.Dto.EnergyMeterPutDto;
-import utn.tpFinal.UDEE.model.Dto.ResidenceDto;
+import utn.tpFinal.UDEE.model.Dto.ResidenceResponseDto;
 import utn.tpFinal.UDEE.model.EnergyMeter;
-import utn.tpFinal.UDEE.model.Residence;
-import utn.tpFinal.UDEE.service.BrandService;
 import utn.tpFinal.UDEE.service.EnergyMeterService;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-import utn.tpFinal.UDEE.service.ModelService;
+import utn.tpFinal.UDEE.service.ResidenceService;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -34,10 +31,12 @@ import java.util.List;
 public class EnergyMeterController {
 
     private EnergyMeterService energyMeterService;
+    private ResidenceService residenceService;
 
     @Autowired
-    public EnergyMeterController(EnergyMeterService energyMeterService){
+    public EnergyMeterController(EnergyMeterService energyMeterService,ResidenceService residenceService){
         this.energyMeterService = energyMeterService;
+        this.residenceService = residenceService;
     }
 
     // METODOS BASE REST
@@ -59,11 +58,11 @@ public class EnergyMeterController {
     }
 
     @GetMapping
-    public ResponseEntity<List<EnergyMeterDto>> getAll(@RequestParam(defaultValue = "0") Integer page,
-                                                    @RequestParam(defaultValue = "5") Integer size,
-                                                    @RequestParam(defaultValue = "serialNumber") String sortField1,
-                                                    @RequestParam(defaultValue = "meterModel") String sortField2,
-                                                    @And({
+    public ResponseEntity<List<EnergyMeterResponseDto>> getAll(@RequestParam(defaultValue = "0") Integer page,
+                                                               @RequestParam(defaultValue = "5") Integer size,
+                                                               @RequestParam(defaultValue = "serialNumber") String sortField1,
+                                                               @RequestParam(defaultValue = "meterModel") String sortField2,
+                                                               @And({
                                                             @Spec(path = "serialNumber", spec = Equal.class),
                                                             @Spec(path = "meterModel",spec =LikeIgnoreCase.class)
                                                     }) Specification<EnergyMeter> meterSpecification){
@@ -71,7 +70,7 @@ public class EnergyMeterController {
         orderList.add(new Sort.Order(Sort.Direction.ASC, sortField1));
         orderList.add(new Sort.Order(Sort.Direction.ASC, sortField2));
 
-        Page<EnergyMeterDto> meters = energyMeterService.getAll(meterSpecification, page, size, orderList);
+        Page<EnergyMeterResponseDto> meters = energyMeterService.getAll(meterSpecification, page, size, orderList);
         if(meters.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -100,24 +99,25 @@ public class EnergyMeterController {
     }
 
     @GetMapping("/{serialNumberEnergyMeter}")
-    public ResponseEntity<EnergyMeterDto> getEnergyMeterBySerialNumber(@PathVariable Integer serialNumberEnergyMeter) throws MeterNotFoundException {
-        EnergyMeterDto energyMeterDto;
-        energyMeterDto = energyMeterService.getBySerialNumber(serialNumberEnergyMeter);
-        return ResponseEntity.ok().body(energyMeterDto);
+    public ResponseEntity<EnergyMeterResponseDto> getEnergyMeterBySerialNumber(@PathVariable Integer serialNumberEnergyMeter) throws MeterNotFoundException {
+        EnergyMeterResponseDto energyMeterResponseDto;
+        energyMeterResponseDto = energyMeterService.getBySerialNumber(serialNumberEnergyMeter);
+
+        return ResponseEntity.ok().body(energyMeterResponseDto);
     }
 
     @PutMapping("/{serialNumberEnergyMeter}")
-    public ResponseEntity<EnergyMeterDto> updateMeter(@PathVariable Integer serialNumberEnergyMeter, @RequestBody EnergyMeterPutDto energyMeterPutDto) throws MeterNotFoundException, ModelNotFoundException, BrandNotFoundException {
-        EnergyMeterDto energyMeterDto = energyMeterService.updateMeter(serialNumberEnergyMeter,energyMeterPutDto);
-        return ResponseEntity.ok().body(energyMeterDto);
+    public ResponseEntity<EnergyMeterResponseDto> updateMeter(@PathVariable Integer serialNumberEnergyMeter, @RequestBody EnergyMeterPutDto energyMeterPutDto) throws MeterNotFoundException, ModelNotFoundException, BrandNotFoundException {
+        EnergyMeterResponseDto energyMeterResponseDto = energyMeterService.updateMeter(serialNumberEnergyMeter,energyMeterPutDto);
+        return ResponseEntity.ok().body(energyMeterResponseDto);
     }
 
 
     //
     @GetMapping("/{serialNumberEnergyMeter}/residence")
-    public ResponseEntity<ResidenceDto> getResidenceByEnergyMeterSerialNumber(@PathVariable Integer serialNumberEnergyMeter) throws MeterNotFoundException, ResidenceNotFoundException {
+    public ResponseEntity<ResidenceResponseDto> getResidenceByEnergyMeterSerialNumber(@PathVariable Integer serialNumberEnergyMeter) throws MeterNotFoundException, ResidenceNotFoundException {
 
-        ResidenceDto residence = energyMeterService.getResidenceByMeterSerialNumber(serialNumberEnergyMeter);
+        ResidenceResponseDto residence = residenceService.getResidenceByMeterSerialNumber(serialNumberEnergyMeter);
         return ResponseEntity.ok(residence);
     }
 
