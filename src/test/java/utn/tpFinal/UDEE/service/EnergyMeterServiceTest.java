@@ -3,6 +3,7 @@ package utn.tpFinal.UDEE.service;
 import io.micrometer.core.instrument.Meter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import utn.tpFinal.UDEE.exceptions.BrandNotFoundException;
 import utn.tpFinal.UDEE.exceptions.MeterAlreadyExistException;
@@ -22,6 +23,7 @@ import utn.tpFinal.UDEE.util.TestConstants;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -91,14 +93,14 @@ public class EnergyMeterServiceTest {
 
             Integer addedId= energyMeterService.add(meter);
             assertEquals(1,addedId);
-        }catch (MeterAlreadyExistException e){
+        }catch (MeterAlreadyExistException | ParseException e){
             assertEquals(e.getClass(),MeterAlreadyExistException.class);
             assertThrows(MeterAlreadyExistException.class, ()->energyMeterService.add(meter));
         }
     }
 
     @Test
-    public void getBySerialNumber_TestOk() throws MeterNotFoundException {
+    public void getBySerialNumber_TestOk() throws MeterNotFoundException, ParseException {
         Integer serialNumber = 1;
         EnergyMeter findedMeter = EnergyMeter.builder().brand(TestConstants.getBrand(1)).meterModel(TestConstants.getModel(1)).serialNumber(serialNumber).measure(new ArrayList<>()).residences(TestConstants.getResidence(1)).password("324").build();
         when(energyMeterRepository.findBySerialNumber(serialNumber)).thenReturn(Optional.ofNullable(findedMeter));
@@ -108,7 +110,7 @@ public class EnergyMeterServiceTest {
         assertEquals(serialNumber,energyMeterResponseDto.getSerialNumber());
     }
     @Test
-    public void getBySerialNumber_TestNotFound()  {
+    public void getBySerialNumber_TestNotFound() throws ParseException {
         Integer serialNumber = 1;
         EnergyMeter findedMeter = EnergyMeter.builder().brand(TestConstants.getBrand(1)).meterModel(TestConstants.getModel(1)).serialNumber(serialNumber).measure(new ArrayList<>()).residences(TestConstants.getResidence(1)).password("324").build();
         when(energyMeterRepository.findBySerialNumber(serialNumber)).thenReturn(Optional.empty());
@@ -134,7 +136,7 @@ public class EnergyMeterServiceTest {
         assertThrows(MeterNotFoundException.class,()->energyMeterService.deleteEnergyMeterBySerialNumber(serialNumber));
     };
     @Test
-    public void updateMeter_TestOK() throws BrandNotFoundException, MeterNotFoundException, ModelNotFoundException {
+    public void updateMeter_TestOK() throws BrandNotFoundException, MeterNotFoundException, ModelNotFoundException, ParseException {
         EnergyMeterPutDto meter = TestConstants.getEnergyMeterPutDto();
         Integer serialNumber = 1;
         Residence residence = TestConstants.getResidence(1);
@@ -156,7 +158,7 @@ public class EnergyMeterServiceTest {
         assertEquals(meter.getPassword(),updateMeter.getPassword());
     }
     @Test
-    public void updateMeter_TestMeterNotFoundException() throws BrandNotFoundException, MeterNotFoundException, ModelNotFoundException {
+    public void updateMeter_TestMeterNotFoundException() throws BrandNotFoundException, MeterNotFoundException, ModelNotFoundException, ParseException {
         EnergyMeterPutDto meter = TestConstants.getEnergyMeterPutDto();
         Integer serialNumber = 1;
         Residence residence = TestConstants.getResidence(1);
@@ -175,8 +177,35 @@ public class EnergyMeterServiceTest {
     }
 
     @Test
-    public void getAll_TestOk(){
+    public void getAll_TestOk() throws ParseException {
         Specification<EnergyMeter> energyMeterSpecification = mock(Specification.class);
-        
+        Integer page = 0;
+        Integer size = 5;
+        List<Sort.Order> orders = TestConstants.getOrders("serialNumber","meterModel");
+        Pageable pageable = PageRequest.of(page,size,Sort.by(orders));
+        List<EnergyMeter> energyMeters = TestConstants.getEnergyMeterList();
+        Page<EnergyMeter> energyMeterPage = new PageImpl<EnergyMeter>(energyMeters);
+
+        when(energyMeterRepository.findAll(energyMeterSpecification,pageable)).thenReturn(energyMeterPage);
+
+        Page<EnergyMeterResponseDto> energyMeterResponseDtoPage = energyMeterService.getAll(energyMeterSpecification,page,size,orders);
+        assertEquals(false,energyMeterResponseDtoPage.getContent().isEmpty());
+        assertEquals(1,energyMeterResponseDtoPage.getContent().get(0).getSerialNumber());
+        assertEquals(2,energyMeterResponseDtoPage.getNumberOfElements());
+    }
+    @Test
+    public void getAll_TestEmpty() throws ParseException {
+        Specification<EnergyMeter> energyMeterSpecification = mock(Specification.class);
+        Integer page = 0;
+        Integer size = 5;
+        List<Sort.Order> orders = TestConstants.getOrders("serialNumber","meterModel");
+        Pageable pageable = PageRequest.of(page,size,Sort.by(orders));
+        List<EnergyMeter> energyMeters = new ArrayList<>();
+        Page<EnergyMeter> energyMeterPage = new PageImpl<EnergyMeter>(energyMeters);
+
+        when(energyMeterRepository.findAll(energyMeterSpecification,pageable)).thenReturn(energyMeterPage);
+
+        Page<EnergyMeterResponseDto> energyMeterResponseDtoPage = energyMeterService.getAll(energyMeterSpecification,page,size,orders);
+        assertTrue(energyMeterResponseDtoPage.getContent().isEmpty());
     }
 }

@@ -49,13 +49,11 @@ public class FeeTypeService {
 
     public Boolean deleteFeeType(Integer idFeeType)throws  FeeTypeNotFoundException{
         Boolean deleted = false;
-        if(!feeTypeRepository.existsById(idFeeType)){
-            throw new FeeTypeNotFoundException(this.getClass().getSimpleName(),"deleteFeeType");
-        }
-        feeTypeRepository.deleteById(idFeeType);
-
-        if(!feeTypeRepository.existsById(idFeeType)){
+        if(feeTypeRepository.existsById(idFeeType)){
+            feeTypeRepository.deleteById(idFeeType);
             deleted = true;
+        } else {
+            throw new FeeTypeNotFoundException(this.getClass().getSimpleName(),"deleteFeeType");
         }
         return deleted;
     }

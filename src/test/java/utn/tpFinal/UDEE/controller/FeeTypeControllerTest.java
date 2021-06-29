@@ -48,10 +48,11 @@ public class FeeTypeControllerTest {
         when(feeTypePage.getTotalElements()).thenReturn(Long.valueOf(feeTypeList.size()));
         when(feeTypePage.getTotalPages()).thenReturn(1);
         when(feeTypePage.getContent()).thenReturn(feeTypeList);
+
         when(feeTypeService.getAllFees(specification,PAGE,SIZE,orders)).thenReturn(feeTypePage); ///no me toma este when no se por que
 
 
-        ResponseEntity<List<FeeTypeResponseDto>> responseEntity = feeTypeController.getAll(PAGE,SIZE,"street","number",specification);
+        ResponseEntity<List<FeeTypeResponseDto>> responseEntity = feeTypeController.getAll(PAGE,SIZE,"detail","kwPricePerHour",specification);
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertEquals(1,Integer.parseInt(responseEntity.getHeaders().get("X-Total-Pages").get(0)));
@@ -69,7 +70,7 @@ public class FeeTypeControllerTest {
         when(feeTypeService.getAllFees(specification,PAGE,SIZE,orders)).thenReturn(feeTypePage);
 
 
-        ResponseEntity<List<FeeTypeResponseDto>> responseEntity = feeTypeController.getAll(PAGE,SIZE,"street","number",specification);
+        ResponseEntity<List<FeeTypeResponseDto>> responseEntity = feeTypeController.getAll(PAGE,SIZE,"detail","kwPricePerHour",specification);
 
         assertEquals(HttpStatus.NO_CONTENT, responseEntity.getStatusCode());
         assertEquals(null,responseEntity.getBody());

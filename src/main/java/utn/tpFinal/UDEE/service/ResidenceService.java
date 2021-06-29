@@ -47,7 +47,7 @@ public class ResidenceService {
         }
         return residenceDtos;
     }
-    public Integer addResidence(ResidenceAddDto residenceAddDto) throws ResidenceAlreadyExists, ClientNotFoundException, MeterNotFoundException, MeterAlreadyHasResidenceException, FeeTypeNotFoundException {
+    public Integer addResidence(ResidenceAddDto residenceAddDto) throws  ClientNotFoundException, MeterNotFoundException, MeterAlreadyHasResidenceException, FeeTypeNotFoundException {
         Client client = clientRepository.findById(residenceAddDto.getIdClient()).orElseThrow(()-> new ClientNotFoundException(this.getClass().getSimpleName(),"addResidence"));
         EnergyMeter energyMeter = energyMeterRepository.findById(residenceAddDto.getEnergyMeterSerialNumber()).orElseThrow(()-> new MeterNotFoundException(this.getClass().getSimpleName(),"addResidence"));
         FeeType feeType = feeTypeRepository.findById(residenceAddDto.getFee_value()).orElseThrow(()-> new FeeTypeNotFoundException(this.getClass().getSimpleName(),"addResidence"));
@@ -72,9 +72,7 @@ public class ResidenceService {
         Boolean deleted = false;
         if(residenceRepository.existsById(residenceId)){
             residenceRepository.deleteById(residenceId);
-            if(!residenceRepository.existsById(residenceId)){
-                 deleted = true;
-            }
+            deleted = true;
         }else{
             throw new ResidenceNotFoundException(this.getClass().getSimpleName(),"removeResidence");
         }

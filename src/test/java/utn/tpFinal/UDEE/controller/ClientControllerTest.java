@@ -161,7 +161,7 @@ public class ClientControllerTest {
         when(invoiceResponsePage.getTotalElements()).thenReturn(Long.valueOf(invoiceResponseDto.size()));
         when(authentication.getAuthorities()).thenReturn(authorotiesList);
         when(authentication.getPrincipal()).thenReturn(userDto);
-        when(invoiceService.getUnpaidInvoices(DNI_CLIENT,PAGE,SIZE,orders)).thenReturn(invoiceResponsePage);//no toma este
+        when(invoiceService.getClientUnpaidInvoices(DNI_CLIENT,PAGE,SIZE,orders)).thenReturn(invoiceResponsePage);//no toma este
         when(invoiceResponsePage.isEmpty()).thenReturn(false);
 
         ResponseEntity<List<InvoiceResponseDto>> responseEntity = clientController.getUnpaidByClient(authentication,DNI_CLIENT,PAGE,SIZE,"id","emissionDate");
@@ -198,7 +198,7 @@ public class ClientControllerTest {
 
         when(authentication.getAuthorities()).thenReturn(authorotiesList);
         when(authentication.getPrincipal()).thenReturn(userDto);
-        when(invoiceService.getUnpaidInvoices(DNI_CLIENT,PAGE,SIZE,orders)).thenReturn(invoiceResponsePage);
+        when(invoiceService.getClientUnpaidInvoices(DNI_CLIENT,PAGE,SIZE,orders)).thenReturn(invoiceResponsePage);
 
         ResponseEntity<List<InvoiceResponseDto>> responseEntity = clientController.getUnpaidByClient(authentication,DNI_CLIENT,PAGE,SIZE,"id","emissionDate");
 

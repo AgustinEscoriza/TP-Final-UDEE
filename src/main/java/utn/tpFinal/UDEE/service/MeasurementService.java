@@ -46,7 +46,8 @@ public class MeasurementService {
         EnergyMeter energyMeter = energyMeterRepository.findById(Integer.parseInt(dto.getSerialNumber()))
                 .orElseThrow(()->new MeterNotFoundException(this.getClass().getSimpleName(),"addMeasurement"));
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY-MM-dd HH:mm:ss");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
+
 
 
         if(energyMeter.getPassword().equals(dto.getPassword())){
@@ -55,9 +56,10 @@ public class MeasurementService {
                     .energyMeter(energyMeter)
                     .residence(energyMeter.getResidences())
                     .residence(energyMeter.getResidences())
-                    .date(dateFormat.parse(dto.getDate()))
+                    .date(dateFormat.parse(dto.getDate().toString()))
                     .billed(false)
                     .build();
+
             Measurement newMeasurement = measurementRepository.save(measurement);
             return newMeasurement.getId();
         }else{

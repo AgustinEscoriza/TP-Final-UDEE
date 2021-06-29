@@ -1,5 +1,6 @@
 package utn.tpFinal.UDEE.util;
 
+import org.apache.tomcat.jni.Local;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import utn.tpFinal.UDEE.model.*;
@@ -7,6 +8,7 @@ import utn.tpFinal.UDEE.model.Dto.*;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -37,8 +39,16 @@ public class TestConstants {
                 .password("123")
                 .build();
     }
+    public static List<EnergyMeter> getEnergyMeterList() throws ParseException {
+        List<EnergyMeter> energyMeterList= new ArrayList<>();
+        energyMeterList.add(getEnergyMeter(1));
+        energyMeterList.add(getEnergyMeter(2));
+        return energyMeterList;
+    }
     public static EnergyMeter getEnergyMeter(Integer serialNumber) throws ParseException {
         return EnergyMeter.builder()
+                .serialNumber(serialNumber)
+                .password("123")
                 .measure(getMeasurementsList())
                 .brand(getBrand(1))
                 .meterModel(getModel(1))
@@ -62,8 +72,8 @@ public class TestConstants {
     }
     public static List<Measurement> getMeasurementsList() throws ParseException {
         List<Measurement> measurementList = new ArrayList<>();
-        measurementList.add(Measurement.builder().id(1).billed(true).date(getDate(1)).kwH(12.4f).build());
-        measurementList.add(Measurement.builder().id(2).billed(false).date(getDate(2)).kwH(15.4f).build());
+        measurementList.add(Measurement.builder().id(1).billed(true).date(getDate(1)).kwH(12.4f).residence(Residence.builder().id(1).build()).build());
+        measurementList.add(Measurement.builder().id(2).billed(false).date(getDate(2)).kwH(15.4f).residence(Residence.builder().id(1).build()).build());
         return measurementList;
     }
     public static Measurement getMeasurement(Integer id) throws ParseException {
@@ -76,13 +86,16 @@ public class TestConstants {
     }
 
     public static MeasureRequestDto getMeasureRequestDto() throws ParseException {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("YYYY-MM-dd HH:mm:ss");
         return MeasureRequestDto.builder()
                 .value(100F)
-                .date("2021-06-02 12:12:12")
-                .password("1234")
+                .date(getDate(1).toString())
+                .password("123")
                 .serialNumber("001")
                 .build();
     }
+
+
 
     // -----------------------RESIDENCE------------------------------------------------
 
@@ -96,7 +109,12 @@ public class TestConstants {
                 .postal_number(7600)
                 .build();
     }
-
+    public static List<Residence> getResidenceList() throws ParseException {
+        List<Residence> residenceList = new ArrayList<>();
+        residenceList.add(getResidence(1));
+        residenceList.add(getResidence(2));
+        return residenceList;
+    }
     public static List<ResidenceResponseDto> getResidenceResponseDtoList() {
         List<ResidenceResponseDto> residenceResponseDtoList = new ArrayList<>();
         residenceResponseDtoList.add(ResidenceResponseDto.builder().id(1).postalNumber(7600).street("steet1").number("123").build());
@@ -115,9 +133,11 @@ public class TestConstants {
                 .feeType(getFeeType(1))
                 .build();
     }
-    public static Residence getResidence(Integer id) {
+    public static Residence getResidence(Integer id) throws ParseException {
         return Residence.builder()
+                .energyMeter(getEnergyMeter(1))
                 .street("street")
+                .feeType(getFeeType(1))
                 .postalNumber(123)
                 .number("213")
                 .id(id)
@@ -169,7 +189,15 @@ public class TestConstants {
                 .build();
     }
     // -----------------------CLIENT------------------------------------------------
-
+    public static ClientPutDto getClientPutDto() {
+        return ClientPutDto.builder().idUser(1).build();
+    }
+    public static List<Client> getClientList() {
+        List<Client> clientList = new ArrayList<>();
+        clientList.add(getClient(1));
+        clientList.add(getClient(2));
+        return clientList;
+    }
     public static ClientAddDto getClientAddDto() {
         return ClientAddDto.builder().dni(1).build();
     }
@@ -219,6 +247,13 @@ public class TestConstants {
         return UserDto.from(getUserClient(id));
     }
     // -----------------------INVOICES------------------------------------------------
+    public static List<Invoice> getInvoiceList() throws ParseException {
+        List<Invoice> invoiceList = new ArrayList<>();
+        invoiceList.add(getInvoice(1));
+        invoiceList.add(getInvoice(2));
+        return invoiceList;
+    }
+
     public static Invoice getInvoice(Integer idInvoice) throws ParseException {
         return Invoice.builder()
                 .client(getClient(2411244))
@@ -278,19 +313,32 @@ public class TestConstants {
         list.add(new SimpleGrantedAuthority("BACKOFFICE"));
         return list;
     }
-    public static Date getDate(Integer i) throws ParseException {
-        Date date1 =  new SimpleDateFormat("yyyy-MM-dd").parse("2020-02-02");
-        Date date2 =  new SimpleDateFormat("yyyy-MM-dd").parse("2020-03-02");
+    public static Date getDate(Integer i) {
         Date rta=new Date();
-        switch (i){
-            case 1:
-                rta= date1;
-                break;
-            case 2:
-                rta= date2;
-                break;
+        try{
+            Date date1 =  new SimpleDateFormat("yyyy-MM-dd").parse("2020-02-02");
+            Date date2 =  new SimpleDateFormat("yyyy-MM-dd").parse("2020-03-02");
+            Date date3 =  new SimpleDateFormat("yyyy-MM-dd").parse("2020-03-03");
+
+            switch (i){
+                case 1:
+                    rta= date1;
+                    break;
+                case 2:
+                    rta= date2;
+                    break;
+                case 3:
+                    rta= date3;
+                    break;
+            }
+        }catch (ParseException e){
+            e.getErrorOffset();
         }
         return rta;
+    }
+    private static LocalDateTime getLocalDateTime() {
+        LocalDateTime date1 =  LocalDateTime.now();
+        return date1;
     }
     public static List<Sort.Order> getOrders(String field1, String field2){
         List<Sort.Order> orders = new ArrayList<>();

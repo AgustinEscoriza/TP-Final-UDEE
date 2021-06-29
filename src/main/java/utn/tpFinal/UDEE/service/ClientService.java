@@ -48,9 +48,6 @@ public class ClientService {
         return clientDtos;
     }
 
-    public Client getById(Integer id) {
-        return clientRepository.findById(id).orElseThrow(() -> new HttpClientErrorException(HttpStatus.NOT_FOUND));
-    }
 
     public Integer add(ClientAddDto clientAddDto) throws ClientNotFoundException, UserNotFoundException, UserAlreadyHasClientException, ClientAlreadyExistsException, ClientCannotBeAnEmployeeExcecption {
         if(!clientRepository.existsById(clientAddDto.getDni())){

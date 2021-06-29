@@ -26,14 +26,13 @@ public class UserService {
     }
     public Boolean deleteUser(Integer userId) throws UserNotFoundException {
         Boolean deleted = false;
-        if(!userRepository.existsById(userId)){
+        if(userRepository.existsById(userId)){
+            userRepository.deleteById(userId);
+            deleted = true;
+        }else{
             throw new UserNotFoundException(this.getClass().getSimpleName(),"deleteUser");
         }
-        userRepository.deleteById(userId);
-        if(!userRepository.existsById(userId)){
-            deleted = true;
-        }
-        return false;
+        return deleted;
     }
 
     public User login( String email, String password){

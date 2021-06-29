@@ -39,6 +39,7 @@ public class InvoiceResponseDto {
                 .initialMeasurement(invoice.getInitialMeasurement())
                 .finalMeasurement(invoice.getFinalMeasurement())
                 .totalConsumption(invoice.getTotalConsumption())
+                .finalPayment(invoice.getFinalPrice())
                 .emissionDate(invoice.getEmissionDate().toString().substring(0,10))
                 .initialReadingDate(invoice.getInitialReadingDate().toString().substring(0,10))
                 .finalReadingDate(invoice.getFinalReadingDate().toString().substring(0,10))
@@ -47,8 +48,10 @@ public class InvoiceResponseDto {
     }
     public static List<InvoiceResponseDto> from (List<Invoice>invoiceList){
         List<InvoiceResponseDto> invoiceResponseDtos = new ArrayList<InvoiceResponseDto>();
-        for(Invoice i: invoiceList){
-            invoiceResponseDtos.add(InvoiceResponseDto.from(i));
+        if(invoiceList != null) {
+            for (Invoice i : invoiceList) {
+                invoiceResponseDtos.add(InvoiceResponseDto.from(i));
+            }
         }
         return invoiceResponseDtos;
     }
